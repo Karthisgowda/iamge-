@@ -11,6 +11,10 @@ from models import User, ImageResult
 from image_recognition import analyze_image, analyze_image_with_openai, get_visualization_data
 import logging
 
+# Ensure uploads directory exists
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
 # Home route
 @app.route('/')
 def home():

@@ -19,4 +19,5 @@ dependencies = [
     "openai>=1.70.0",
     "markupsafe>=3.0.2",
     "markdown>=3.7",
+    "pymysql>=1.1.1",
 ]
