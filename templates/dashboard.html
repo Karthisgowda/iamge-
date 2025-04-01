@@ -141,8 +141,8 @@
                             </h4>
                             <div class="card border-0 {% if result.openai_analysis.is_fallback %}bg-dark{% else %}bg-light{% endif %}">
                                 <div class="card-body">
-                                    <div class="detailed-analysis text-light">
-                                        {{ result.openai_analysis.description|safe|nl2br }}
+                                    <div class="detailed-analysis {% if result.openai_analysis.is_fallback %}text-light{% endif %}">
+                                        {{ result.openai_analysis.description|markdown }}
                                     </div>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@
                                         {% if result.openai_analysis.description %}
                                         <hr>
                                         <div class="detailed-analysis text-dark">
-                                            {{ result.openai_analysis.description|safe|nl2br }}
+                                            {{ result.openai_analysis.description|markdown }}
                                         </div>
                                         {% endif %}
                                     </div>

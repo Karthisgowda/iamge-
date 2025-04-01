@@ -43,6 +43,14 @@ def nl2br_filter(text):
         return ""
     return Markup(text.replace('\n', '<br>'))
 
+@app.template_filter('markdown')
+def markdown_filter(text):
+    """Convert markdown to HTML"""
+    if not text:
+        return ""
+    import markdown
+    return Markup(markdown.markdown(text, extensions=['extra']))
+
 # Create database tables within app context
 with app.app_context():
     # Import models to ensure they're registered with SQLAlchemy
