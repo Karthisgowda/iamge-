@@ -89,6 +89,7 @@
 .detailed-analysis {
     font-family: var(--bs-font-sans-serif);
     line-height: 1.6;
+    color: inherit; /* Inherit from parent to support both light and dark backgrounds */
 }
 
 .detailed-analysis h1,
@@ -116,16 +117,17 @@
 /* Style for all bold elements */
 .detailed-analysis strong {
     font-weight: 600;
+    color: var(--bs-info); /* Make all bold text more visible */
 }
 
 /* Style for the section headers in AI analysis (bold items that are on their own line) */
 .detailed-analysis p strong {
     display: block;
-    border-bottom: 1px solid var(--bs-gray-200);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Semi-transparent border works for both dark/light */
     padding-bottom: 0.3rem;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
-    color: var(--bs-primary);
+    color: var(--bs-info);
     font-size: 1.2rem;
 }
 
@@ -133,8 +135,28 @@
 .detailed-analysis p:first-of-type strong {
     margin-top: 0;
     font-size: 1.3rem;
-    color: var(--bs-info);
-    border-bottom: 1px solid var(--bs-gray-400);
+    color: var(--bs-warning);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Star ratings for confidence levels */
+.detailed-analysis .confidence-stars {
+    color: var(--bs-warning);
+    letter-spacing: 2px;
+}
+
+/* Override text colors for specific card backgrounds */
+.bg-dark .detailed-analysis:not(.text-dark) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.bg-light .detailed-analysis:not(.text-light) {
+    color: var(--bs-dark);
+}
+
+/* Alert text color override */
+.alert .detailed-analysis {
+    color: inherit !important;
 }
 
 /* Responsive adjustments */
