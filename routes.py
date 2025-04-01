@@ -107,6 +107,55 @@ def dashboard():
             logging.debug(f"Starting OpenAI analysis for {file_path}")
             openai_analysis = analyze_image_with_openai(file_path)
             logging.debug(f"OpenAI analysis result: {openai_analysis.get('success')}")
+            
+            # If OpenAI analysis failed but we have basic recognition data,
+            # add more detailed information about the image itself
+            if not openai_analysis.get('success', False) and recognition_result.get('success', False):
+                # Get file info for additional details
+                image_size = os.path.getsize(file_path)
+                image_size_kb = round(image_size / 1024, 2)
+                file_extension = os.path.splitext(file_path)[1].lower().replace('.', '')
+                
+                # Add enhanced details to the description
+                if 'description' not in openai_analysis or not openai_analysis['description']:
+                    openai_analysis['description'] = f"""
+**IMAGE DETAILS**
+
+This image was uploaded as "{original_filename}" ({image_size_kb} KB, {file_extension.upper()} format).
+
+**BASIC RECOGNITION RESULTS**
+
+Based on our analysis, this image contains the following elements:
+"""
+                    # Add top tags to the description
+                    if 'data' in recognition_result and 'result' in recognition_result['data']:
+                        tags = recognition_result['data']['result']['tags']
+                        top_tags = sorted(tags, key=lambda x: x['confidence'], reverse=True)[:10]
+                        
+                        for i, tag in enumerate(top_tags):
+                            confidence = tag['confidence']
+                            tag_name = tag['tag']['en']
+                            confidence_star = "★" * int(confidence/20) + "☆" * (5 - int(confidence/20))
+                            openai_analysis['description'] += f"\n- **{tag_name}** ({confidence:.1f}% confidence) {confidence_star}"
+                    
+                    # Add more information and suggestions
+                    openai_analysis['description'] += """
+
+**TECHNICAL INFORMATION**
+
+The image has been successfully processed through our basic recognition system.
+For a more detailed AI analysis, please try again later when our enhanced analysis service is available.
+
+**SUGGESTIONS**
+
+- View the chart below to see confidence levels for each detected element
+- Try different images or image types for varied results
+- Check your history page to compare with previous uploads
+"""
+                
+                # Ensure the success flag is true even though we're using fallback content
+                openai_analysis['success'] = True
+                openai_analysis['is_fallback'] = True
         except Exception as e:
             logging.error(f"Error in OpenAI analysis: {str(e)}")
             openai_analysis = {
@@ -118,7 +167,13 @@ def dashboard():
         # Combine results
         combined_result = {
             **recognition_result,
-            'openai_analysis': openai_analysis
+            'openai_analysis': openai_analysis,
+            'file_info': {
+                'original_name': original_filename,
+                'size': os.path.getsize(file_path),
+                'type': os.path.splitext(file_path)[1].lower().replace('.', ''),
+                'upload_time': datetime.utcnow().strftime('%b %d, %Y at %H:%M:%S')
+            }
         }
         
         # Store result in database

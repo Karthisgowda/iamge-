@@ -153,12 +153,37 @@ def analyze_image_with_openai(image_path):
             )
             logging.debug("OpenAI API response received successfully")
         except Exception as api_error:
+            # Log the detailed error
             logging.error(f"OpenAI API error: {str(api_error)}")
-            return {
-                'success': False,
-                'error': f"OpenAI API error: {str(api_error)}",
-                'description': "There was a problem communicating with the OpenAI service."
-            }
+            
+            # Check for quota exceeded error (429)
+            error_message = str(api_error).lower()
+            if "429" in error_message or "quota" in error_message or "rate limit" in error_message:
+                # Provide a helpful message for quota issues
+                return {
+                    'success': False,
+                    'error': "OpenAI API quota exceeded. The service is temporarily unavailable due to high usage.",
+                    'description': """
+**Enhanced Image Analysis Unavailable**
+
+We're currently experiencing high demand for our AI-powered image analysis feature. The OpenAI service has temporarily limited access due to exceeded quota.
+
+**What you can see instead:**
+- Basic image recognition tags are still available
+- Chart visualization of detected elements
+- Image preview and technical data
+
+**When to try again:**
+API quota typically refreshes after a short period. Please try again in a few minutes, or contact support if this issue persists.
+                    """
+                }
+            else:
+                # Generic error message for other issues
+                return {
+                    'success': False,
+                    'error': f"OpenAI API error: {str(api_error)}",
+                    'description': "There was a problem communicating with the OpenAI service. Please try again later."
+                }
         
         # Extract the detailed description from the response
         try:
