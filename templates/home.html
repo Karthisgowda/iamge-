@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Image Recognition App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <div class="p-5 animate-on-scroll fade-in">
+                <h1 class="display-4 fw-bold mb-4">Image Recognition</h1>
+                <p class="lead mb-4">
+                    Unlock the power of AI with our cutting-edge image recognition technology. 
+                    Upload any image and instantly discover what's in it through advanced machine learning algorithms.
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">Go to Dashboard</a>
+                    {% else %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="p-5 text-center animate-on-scroll slide-in">
+                <div class="hero-image-container">
+                    <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" class="img-fluid">
+                        <!-- Abstract image recognition graphic -->
+                        <rect x="100" y="50" width="300" height="250" rx="20" fill="#1a1a1a" stroke="#6c757d" stroke-width="2"/>
+                        <circle cx="250" cy="175" r="100" fill="#212529" stroke="#0d6efd" stroke-width="2"/>
+                        <path d="M200,175 L300,175 M250,125 L250,225" stroke="#0d6efd" stroke-width="4"/>
+                        <rect x="150" y="100" width="40" height="40" rx="5" fill="#0d6efd" opacity="0.6"/>
+                        <rect x="310" y="210" width="40" height="40" rx="5" fill="#0d6efd" opacity="0.6"/>
+                        <rect x="180" y="230" width="30" height="30" rx="5" fill="#0d6efd" opacity="0.6"/>
+                        <rect x="290" y="120" width="30" height="30" rx="5" fill="#0d6efd" opacity="0.6"/>
+                        <!-- Scanner effect line -->
+                        <line x1="100" y1="175" x2="400" y2="175" stroke="#6c757d" stroke-width="2" stroke-dasharray="5,5" class="scanner-line"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <div class="col">
+            <div class="card h-100 shadow-sm animate-on-scroll fade-in">
+                <div class="card-body">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                    </div>
+                    <h3 class="card-title">Upload Images</h3>
+                    <p class="card-text">Easily upload your images through our intuitive interface. We support common image formats like JPG, PNG and GIF.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm animate-on-scroll fade-in" data-delay="200">
+                <div class="card-body">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <i class="fas fa-brain text-primary"></i>
+                    </div>
+                    <h3 class="card-title">AI Analysis</h3>
+                    <p class="card-text">Our powerful AI algorithms analyze your images to identify objects, scenes, and concepts with remarkable accuracy.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm animate-on-scroll fade-in" data-delay="400">
+                <div class="card-body">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+                        <i class="fas fa-chart-pie text-primary"></i>
+                    </div>
+                    <h3 class="card-title">Visual Results</h3>
+                    <p class="card-text">View detailed analysis results with beautiful visualizations that make interpretation easy and intuitive.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Scanner line animation
+        const scannerLine = document.querySelector('.scanner-line');
+        if (scannerLine) {
+            scannerLine.style.animation = 'scan 2s ease-in-out infinite';
+        }
+    });
+</script>
+{% endblock %}

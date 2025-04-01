@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}History - Image Recognition App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Analysis History</h1>
+    
+    <div class="card shadow animate-on-scroll fade-in">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Your Previous Analyses</h3>
+        </div>
+        <div class="card-body">
+            {% if results %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Filename</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr class="animate-on-scroll fade-in" data-delay="{{ loop.index0 * 100 }}">
+                                <td>
+                                    <img src="{{ url_for('static', filename='uploads/' + result.filename) }}" 
+                                         class="img-thumbnail" alt="{{ result.original_filename }}" 
+                                         style="max-height: 50px;">
+                                </td>
+                                <td>{{ result.original_filename }}</td>
+                                <td>{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_result', result_id=result.id) }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-4x mb-3 text-secondary"></i>
+                    <h4>No Analysis History Yet</h4>
+                    <p class="text-muted">Your image analysis history will appear here.</p>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-upload me-2"></i> Upload Your First Image
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

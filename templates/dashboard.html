@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Image Recognition App{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Image Recognition Dashboard</h1>
+    
+    <div class="row">
+        <!-- Upload Form Column -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow animate-on-scroll fade-in">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Upload Image</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <div class="upload-area text-center p-5 border rounded mb-3" id="upload-area">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-secondary"></i>
+                                <p class="mb-1">Drag and drop your image here</p>
+                                <p class="text-muted small">or</p>
+                                <div>
+                                    <label for="image" class="btn btn-outline-primary">
+                                        Browse Files
+                                    </label>
+                                    {{ form.image(class="d-none", id="image") }}
+                                </div>
+                                <div id="file-name" class="mt-2 text-muted"></div>
+                            </div>
+                            
+                            {% if form.image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.image.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg", id="submit-btn") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Recent Results Section -->
+            {% if recent_results and not result %}
+            <div class="card shadow mt-4 animate-on-scroll fade-in" data-delay="200">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="card-title mb-0">Recent Analyses</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for item in recent_results %}
+                        <a href="{{ url_for('view_result', result_id=item.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ item.original_filename }}</strong>
+                                <div class="text-muted small">{{ item.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">View</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-secondary">View Full History</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Results Column -->
+        <div class="col-lg-6">
+            {% if result %}
+            <div class="card shadow animate-on-scroll slide-in">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Recognition Results</h3>
+                    {% if result.simulated %}
+                    <span class="badge bg-warning text-dark float-end">Simulated</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if result.success %}
+                        <!-- Image Preview -->
+                        <div class="text-center mb-4">
+                            <img src="{{ url_for('static', filename='uploads/' + result.filename) }}" 
+                                 class="img-fluid rounded shadow-sm" 
+                                 alt="{{ result.original_filename }}" 
+                                 style="max-height: 300px;">
+                            <p class="text-muted mt-2">{{ result.original_filename }}</p>
+                        </div>
+                        
+                        <!-- Results Visualization -->
+                        <h4 class="mb-3">Recognition Results</h4>
+                        <div class="mb-4">
+                            <canvas id="resultsChart"></canvas>
+                        </div>
+                        
+                        <!-- Result Details -->
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Analysis Date:</span>
+                            <span>{{ result.timestamp }}</span>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <h4 class="alert-heading">Error!</h4>
+                            <p>{{ result.error }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Analyze Another Image</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow bg-dark animate-on-scroll slide-in">
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-image fa-5x mb-4 text-secondary"></i>
+                    <h3 class="mb-3">No Image Analysis Yet</h3>
+                    <p class="text-muted">Upload an image to see recognition results here.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chart-config.js') }}"></script>
+{% if result and result.success %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuration for the results chart
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+        const chartData = {
+            labels: {{ result.visualization_data.labels|tojson }},
+            data: {{ result.visualization_data.data|tojson }}
+        };
+        
+        // Create the chart using the chart config
+        createResultsChart(ctx, chartData);
+    });
+</script>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('image');
+        const fileNameDisplay = document.getElementById('file-name');
+        
+        // Highlight drop area when file is dragged over
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('border-primary');
+        });
+        
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.classList.remove('border-primary');
+        });
+        
+        // Handle file drop
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('border-primary');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(e.dataTransfer.files[0].name);
+            }
+        });
+        
+        // Handle file selection via browser
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length) {
+                updateFileName(fileInput.files[0].name);
+            }
+        });
+        
+        function updateFileName(name) {
+            fileNameDisplay.textContent = name;
+            uploadArea.classList.add('border-success');
+            
+            // Add animation
+            fileNameDisplay.classList.add('text-success');
+            fileNameDisplay.style.animation = 'fadeIn 0.5s';
+        }
+        
+        // Form submission loading state
+        const form = document.querySelector('form');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        form.addEventListener('submit', function() {
+            if (fileInput.files.length) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Analyzing...';
+            }
+        });
+    });
+</script>
+{% endblock %}
