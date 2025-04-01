@@ -3,8 +3,6 @@ import json
 import requests
 import base64
 import logging
-import base64
-from openai import OpenAI
 from flask import current_app
 
 def analyze_image(image_path):
@@ -78,7 +76,7 @@ def simulate_recognition_results():
 
 def analyze_image_with_openai(image_path):
     """
-    Process an image using OpenAI's Vision model for detailed analysis
+    Process an image using LAMA API for detailed analysis
     
     Args:
         image_path (str): Path to the image file
@@ -86,21 +84,18 @@ def analyze_image_with_openai(image_path):
     Returns:
         dict: Detailed analysis of the image content
     """
-    openai_api_key = current_app.config['OPENAI_API_KEY']
+    lama_api_key = current_app.config['LAMA_API_KEY']  # Using the LAMA API key from config
     
-    if not openai_api_key:
-        logging.warning("OpenAI API key not provided - detailed analysis unavailable")
+    if not lama_api_key:
+        logging.warning("LAMA API key not provided - detailed analysis unavailable")
         return {
             'success': False,
-            'error': "OpenAI API key not provided",
+            'error': "LAMA API key not provided",
             'description': "Unable to generate detailed description without an API key."
         }
     
     try:
-        logging.debug(f"Starting OpenAI analysis for image: {image_path}")
-        
-        # Initialize OpenAI client
-        client = OpenAI(api_key=openai_api_key)
+        logging.debug(f"Starting LAMA analysis for image: {image_path}")
         
         # Ensure the image file exists
         if not os.path.exists(image_path):
@@ -115,57 +110,87 @@ def analyze_image_with_openai(image_path):
         file_size = os.path.getsize(image_path)
         logging.debug(f"Image file size: {file_size} bytes")
         
-        # Encode image to base64
-        try:
-            with open(image_path, "rb") as image_file:
-                image_data = image_file.read()
-                base64_image = base64.b64encode(image_data).decode('utf-8')
-                logging.debug(f"Successfully encoded image to base64, length: {len(base64_image)}")
-        except Exception as e:
-            logging.error(f"Error encoding image to base64: {str(e)}")
-            return {
-                'success': False,
-                'error': f"Error encoding image: {str(e)}",
-                'description': "There was a problem processing the image data."
-            }
+        # Prepare to send the request to LAMA API
+        lama_api_url = "https://api.lama-api.com/v1/images/analyze"
+        headers = {
+            "Authorization": f"Bearer {lama_api_key}"
+        }
         
-        # Call OpenAI API with the image
+        # Open the image file for the API request
+        image_file = None
         try:
-            logging.debug("Calling OpenAI API...")
-            response = client.chat.completions.create(
-                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-                                 # do not change this unless explicitly requested by the user
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**SUBJECT IDENTIFICATION**\nList and identify the key subjects in the image. For people, describe approximate age, gender, clothing, and notable features without making cultural assumptions. For objects, describe their appearance, condition, and unique characteristics.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**IMAGE QUALITY & CHARACTERISTICS**\nAnalysis of image resolution, clarity, any notable editing or filtering, and other technical aspects of the image itself.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**IMAGE METADATA ANALYSIS**\nAnalyze what kind of device likely captured this image, estimation of when it might have been taken (modern, vintage, etc.) and any other technical details that can be inferred.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape, product photography).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
-                                }
-                            }
-                        ]
-                    }
-                ],
-                max_tokens=1500
-            )
-            logging.debug("OpenAI API response received successfully")
-        except Exception as api_error:
-            # Log the detailed error
-            logging.error(f"OpenAI API error: {str(api_error)}")
+            image_file = open(image_path, 'rb')
+            files = {'image': image_file}
+            payload = {
+                'detailed': 'true',
+                'format': 'markdown'
+            }
             
-            # Check for quota exceeded error (429)
-            error_message = str(api_error).lower()
-            if "429" in error_message or "quota" in error_message or "rate limit" in error_message:
-                # Provide a helpful message for quota issues
+            logging.debug("Calling LAMA API...")
+            response = requests.post(lama_api_url, headers=headers, files=files, data=payload)
+            logging.debug(f"LAMA API response status code: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    result = response.json()
+                    description = f"""# Image Analysis Results
+
+## Image Overview
+{result.get('summary', 'No summary available')}
+
+## Main Elements
+{result.get('main_elements', 'No main elements identified')}
+
+## Subject Analysis
+{result.get('subject_analysis', 'No subject analysis available')}
+
+## Technical Details
+* Resolution: {result.get('resolution', 'Unknown')}
+* Image Type: {result.get('image_type', 'Unknown')}
+* File Size: {file_size} bytes
+
+## Categories
+{result.get('categories', '* No categories available')}
+
+## Detailed Description
+{result.get('detailed_description', 'No detailed description available')}"""
+                    
+                    return {
+                        'success': True,
+                        'description': description
+                    }
+                except Exception as json_error:
+                    logging.error(f"Error parsing LAMA API response: {str(json_error)}")
+                    return {
+                        'success': False,
+                        'error': f"Error parsing API response: {str(json_error)}",
+                        'description': "There was a problem understanding the analysis results."
+                    }
+            elif response.status_code == 401:
+                logging.error("LAMA API authentication error: Invalid API key")
                 return {
                     'success': False,
-                    'error': "OpenAI API quota exceeded. The service is temporarily unavailable due to high usage.",
+                    'error': "LAMA API authentication failed",
                     'description': """# Enhanced Image Analysis Unavailable
 
-We're currently experiencing high demand for our AI-powered image analysis feature. The OpenAI service has temporarily limited access due to exceeded quota.
+The LAMA API authentication failed. This could be due to an invalid or expired API key.
+
+## What you can see instead:
+* Basic image recognition tags are still available
+* Chart visualization of detected elements
+* Image preview and technical data
+
+## How to fix:
+Please check your API key and make sure it's valid and active."""
+                }
+            elif response.status_code == 429:
+                logging.error("LAMA API rate limit exceeded")
+                return {
+                    'success': False,
+                    'error': "LAMA API rate limit exceeded",
+                    'description': """# Enhanced Image Analysis Unavailable
+
+We're currently experiencing high demand for our AI-powered image analysis feature. The LAMA service has temporarily limited access due to rate limiting.
 
 ## What you can see instead:
 * Basic image recognition tags are still available
@@ -176,35 +201,32 @@ We're currently experiencing high demand for our AI-powered image analysis featu
 API quota typically refreshes after a short period. Please try again in a few minutes, or contact support if this issue persists."""
                 }
             else:
-                # Generic error message for other issues
+                logging.error(f"LAMA API error: {response.status_code} - {response.text}")
                 return {
                     'success': False,
-                    'error': f"OpenAI API error: {str(api_error)}",
-                    'description': "There was a problem communicating with the OpenAI service. Please try again later."
+                    'error': f"LAMA API error: {response.status_code}",
+                    'description': "There was a problem communicating with the LAMA service. Please try again later."
                 }
-        
-        # Extract the detailed description from the response
-        try:
-            detailed_description = response.choices[0].message.content
-            logging.debug(f"Successfully extracted description, length: {len(detailed_description)}")
-            
-            return {
-                'success': True,
-                'description': detailed_description
-            }
-        except Exception as extract_error:
-            logging.error(f"Error extracting response content: {str(extract_error)}")
+        except Exception as request_error:
+            logging.error(f"Error making LAMA API request: {str(request_error)}")
             return {
                 'success': False,
-                'error': f"Error processing API response: {str(extract_error)}",
-                'description': "There was a problem processing the analysis results."
+                'error': f"Error making API request: {str(request_error)}",
+                'description': "There was a problem sending the image for analysis."
             }
+        finally:
+            # Make sure to close the file if it was opened
+            if image_file is not None:
+                try:
+                    image_file.close()
+                except Exception as close_error:
+                    logging.error(f"Error closing image file: {str(close_error)}")
         
     except Exception as e:
-        logging.error(f"Error in OpenAI image analysis: {str(e)}")
+        logging.error(f"Error in LAMA image analysis: {str(e)}")
         return {
             'success': False,
-            'error': f"Error in OpenAI image analysis: {str(e)}",
+            'error': f"Error in LAMA image analysis: {str(e)}",
             'description': "An error occurred while generating the detailed description."
         }
 
