@@ -102,23 +102,23 @@ def dashboard():
                 'error': f"Error in basic image recognition: {str(e)}"
             }
         
-        # Also process with LAMA API for enhanced analysis
+        # Also process with OpenAI API for enhanced analysis
         try:
-            logging.debug(f"Starting LAMA API analysis for {file_path}")
-            lama_analysis = analyze_image_with_openai(file_path)  # Function name kept for compatibility
-            logging.debug(f"LAMA API analysis result: {lama_analysis.get('success')}")
+            logging.debug(f"Starting OpenAI API analysis for {file_path}")
+            openai_analysis = analyze_image_with_openai(file_path)
+            logging.debug(f"OpenAI API analysis result: {openai_analysis.get('success')}")
             
-            # If LAMA API analysis failed but we have basic recognition data,
+            # If OpenAI API analysis failed but we have basic recognition data,
             # add more detailed information about the image itself
-            if not lama_analysis.get('success', False) and recognition_result.get('success', False):
+            if not openai_analysis.get('success', False) and recognition_result.get('success', False):
                 # Get file info for additional details
                 image_size = os.path.getsize(file_path)
                 image_size_kb = round(image_size / 1024, 2)
                 file_extension = os.path.splitext(file_path)[1].lower().replace('.', '')
                 
                 # Add enhanced details to the description
-                if 'description' not in lama_analysis or not lama_analysis['description']:
-                    lama_analysis['description'] = f"""
+                if 'description' not in openai_analysis or not openai_analysis['description']:
+                    openai_analysis['description'] = f"""
 **IMAGE DETAILS**
 
 This image was uploaded as "{original_filename}" ({image_size_kb} KB, {file_extension.upper()} format).
@@ -136,10 +136,10 @@ Based on our analysis, this image contains the following elements:
                             confidence = tag['confidence']
                             tag_name = tag['tag']['en']
                             confidence_star = "★" * int(confidence/20) + "☆" * (5 - int(confidence/20))
-                            lama_analysis['description'] += f"\n- **{tag_name}** ({confidence:.1f}% confidence) <span class=\"confidence-stars\">{confidence_star}</span>"
+                            openai_analysis['description'] += f"\n- **{tag_name}** ({confidence:.1f}% confidence) <span class=\"confidence-stars\">{confidence_star}</span>"
                     
                     # Add more information and suggestions
-                    lama_analysis['description'] += """
+                    openai_analysis['description'] += """
 
 **TECHNICAL INFORMATION**
 
@@ -154,20 +154,20 @@ For a more detailed AI analysis, please try again later when our enhanced analys
 """
                 
                 # Ensure the success flag is true even though we're using fallback content
-                lama_analysis['success'] = True
-                lama_analysis['is_fallback'] = True
+                openai_analysis['success'] = True
+                openai_analysis['is_fallback'] = True
         except Exception as e:
-            logging.error(f"Error in LAMA API analysis: {str(e)}")
-            lama_analysis = {
+            logging.error(f"Error in OpenAI API analysis: {str(e)}")
+            openai_analysis = {
                 'success': False,
-                'error': f"Error in LAMA API analysis: {str(e)}",
-                'description': "An error occurred while analyzing the image with LAMA API."
+                'error': f"Error in OpenAI API analysis: {str(e)}",
+                'description': "An error occurred while analyzing the image with OpenAI API."
             }
         
         # Combine results
         combined_result = {
             **recognition_result,
-            'lama_analysis': lama_analysis,
+            'openai_analysis': openai_analysis,
             'file_info': {
                 'original_name': original_filename,
                 'size': os.path.getsize(file_path),
@@ -199,7 +199,7 @@ For a more detailed AI analysis, please try again later when our enhanced analys
             'success': recognition_result['success'],
             'error': recognition_result.get('error', None),
             'simulated': recognition_result.get('simulated', False),
-            'lama_analysis': lama_analysis
+            'openai_analysis': openai_analysis
         }
         
     # Get 5 most recent results for quick access
@@ -230,12 +230,15 @@ def view_result(result_id):
     recognition_result = json.loads(result.recognition_data)
     visualization_data = get_visualization_data(recognition_result)
     
-    # Extract LAMA API analysis if it exists
-    lama_analysis = recognition_result.get('lama_analysis', {})
+    # Extract OpenAI API analysis if it exists
+    openai_analysis = recognition_result.get('openai_analysis', {})
     
-    # For backward compatibility with existing database records that might have openai_analysis
-    if not lama_analysis and 'openai_analysis' in recognition_result:
-        lama_analysis = recognition_result.get('openai_analysis', {})
+    # For backward compatibility with existing database records that might have lama_analysis
+    if not openai_analysis and 'lama_analysis' in recognition_result:
+        # Convert lama_analysis to openai_analysis for backward compatibility
+        openai_analysis = recognition_result.get('lama_analysis', {})
+        # Log for debugging
+        logging.debug(f"Converting lama_analysis to openai_analysis for result_id: {result_id}")
     
     view_data = {
         'id': result.id,
@@ -246,7 +249,7 @@ def view_result(result_id):
         'success': recognition_result['success'],
         'error': recognition_result.get('error', None),
         'simulated': recognition_result.get('simulated', False),
-        'lama_analysis': lama_analysis
+        'openai_analysis': openai_analysis
     }
     
     return render_template('dashboard.html', title='Result', result=view_data)

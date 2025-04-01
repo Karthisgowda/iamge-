@@ -46,7 +46,7 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-info text-dark">Basic Recognition</span>
-                                    {% if result.recognition_data and '"openai_analysis"' in result.recognition_data %}
+                                    {% if result.recognition_data and ('"openai_analysis"' in result.recognition_data or '"lama_analysis"' in result.recognition_data) %}
                                         <span class="badge bg-success">AI Enhanced</span>
                                     {% endif %}
                                 </td>

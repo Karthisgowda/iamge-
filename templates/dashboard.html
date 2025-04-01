@@ -130,35 +130,35 @@
                             <canvas id="resultsChart"></canvas>
                         </div>
                         
-                        <!-- LAMA API Analysis -->
-                        {% if result.lama_analysis and result.lama_analysis.success %}
+                        <!-- OpenAI Analysis -->
+                        {% if result.openai_analysis and result.openai_analysis.success %}
                         <div class="mt-4 mb-4">
                             <h4 class="mb-3">
                                 Detailed AI Analysis
-                                {% if result.lama_analysis.is_fallback %}
+                                {% if result.openai_analysis.is_fallback %}
                                     <span class="badge bg-warning text-dark ms-2">Basic Analysis</span>
                                 {% endif %}
                             </h4>
-                            <div class="card border-0 {% if result.lama_analysis.is_fallback %}bg-dark{% else %}bg-light{% endif %}">
+                            <div class="card border-0 {% if result.openai_analysis.is_fallback %}bg-dark{% else %}bg-light{% endif %}">
                                 <div class="card-body">
-                                    <div class="detailed-analysis {% if result.lama_analysis.is_fallback %}text-light{% endif %}">
-                                        {{ result.lama_analysis.description|markdown }}
+                                    <div class="detailed-analysis {% if result.openai_analysis.is_fallback %}text-light{% endif %}">
+                                        {{ result.openai_analysis.description|markdown }}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {% elif result.lama_analysis and result.lama_analysis.error %}
+                        {% elif result.openai_analysis and result.openai_analysis.error %}
                         <div class="mt-4 mb-4">
                             <h4 class="mb-3">Detailed AI Analysis</h4>
                             <div class="card bg-dark border-0">
                                 <div class="card-body">
                                     <div class="alert alert-warning">
                                         <h5 class="alert-heading">AI Analysis Limited</h5>
-                                        <p>{{ result.lama_analysis.error }}</p>
-                                        {% if result.lama_analysis.description %}
+                                        <p>{{ result.openai_analysis.error }}</p>
+                                        {% if result.openai_analysis.description %}
                                         <hr>
                                         <div class="detailed-analysis text-dark">
-                                            {{ result.lama_analysis.description|markdown }}
+                                            {{ result.openai_analysis.description|markdown }}
                                         </div>
                                         {% endif %}
                                     </div>

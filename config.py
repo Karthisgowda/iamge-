@@ -13,9 +13,9 @@ class Config:
     # Using Imagga API for image recognition
     IMAGE_RECOGNITION_API_URL = 'https://api.imagga.com/v2/tags'
     
-    # LAMA API configuration for enhanced image analysis
-    # Use the dedicated LAMA_API_KEY environment variable, falling back to OPENAI_API_KEY for compatibility
-    LAMA_API_KEY = os.environ.get('LAMA_API_KEY') or os.environ.get('OPENAI_API_KEY')
+    # OpenAI API configuration for enhanced image analysis
+    # Use the OpenAI API key for detailed image analysis
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
     
     # File upload settings
     UPLOAD_FOLDER = 'static/uploads'
