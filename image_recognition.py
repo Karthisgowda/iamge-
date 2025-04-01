@@ -163,16 +163,16 @@ def analyze_image_with_openai(image_path):
                 return {
                     'success': False,
                     'error': "OpenAI API quota exceeded. The service is temporarily unavailable due to high usage.",
-                    'description': """**Enhanced Image Analysis Unavailable**
+                    'description': """# Enhanced Image Analysis Unavailable
 
 We're currently experiencing high demand for our AI-powered image analysis feature. The OpenAI service has temporarily limited access due to exceeded quota.
 
-**What you can see instead:**
-- Basic image recognition tags are still available
-- Chart visualization of detected elements
-- Image preview and technical data
+## What you can see instead:
+* Basic image recognition tags are still available
+* Chart visualization of detected elements
+* Image preview and technical data
 
-**When to try again:**
+## When to try again:
 API quota typically refreshes after a short period. Please try again in a few minutes, or contact support if this issue persists."""
                 }
             else:

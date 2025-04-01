@@ -159,6 +159,40 @@
     color: inherit !important;
 }
 
+/* Enhanced markdown styling for alerts */
+.alert .detailed-analysis h1,
+.alert .detailed-analysis h2,
+.alert .detailed-analysis h3,
+.alert .detailed-analysis h4 {
+    color: #856404; /* Yellow/warning color that works well with the alert */
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.alert .detailed-analysis ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+    list-style-type: none;
+}
+
+.alert .detailed-analysis ul li {
+    position: relative;
+    padding-left: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.alert .detailed-analysis ul li:before {
+    content: "•";
+    position: absolute;
+    left: -1rem;
+    color: #856404;
+}
+
+.alert .detailed-analysis strong {
+    color: #856404;
+    font-weight: 600;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .display-4 {
