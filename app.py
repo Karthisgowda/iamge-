@@ -1,6 +1,7 @@
 import os
 import logging
 from flask import Flask, render_template
+from markupsafe import Markup
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
@@ -33,6 +34,14 @@ db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
+
+# Add custom Jinja2 filters
+@app.template_filter('nl2br')
+def nl2br_filter(text):
+    """Convert newlines to <br> tags"""
+    if not text:
+        return ""
+    return Markup(text.replace('\n', '<br>'))
 
 # Create database tables within app context
 with app.app_context():

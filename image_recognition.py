@@ -3,6 +3,8 @@ import json
 import requests
 import base64
 import logging
+import base64
+from openai import OpenAI
 from flask import current_app
 
 def analyze_image(image_path):
@@ -73,6 +75,70 @@ def simulate_recognition_results():
         },
         'simulated': True
     }
+
+def analyze_image_with_openai(image_path):
+    """
+    Process an image using OpenAI's Vision model for detailed analysis
+    
+    Args:
+        image_path (str): Path to the image file
+        
+    Returns:
+        dict: Detailed analysis of the image content
+    """
+    openai_api_key = current_app.config['OPENAI_API_KEY']
+    
+    if not openai_api_key:
+        logging.warning("OpenAI API key not provided - detailed analysis unavailable")
+        return {
+            'success': False,
+            'error': "OpenAI API key not provided",
+            'description': "Unable to generate detailed description without an API key."
+        }
+    
+    try:
+        # Initialize OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+        
+        # Encode image to base64
+        with open(image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        # Call OpenAI API with the image
+        response = client.chat.completions.create(
+            model="gpt-4-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Provide a detailed analysis of this image. Include what's in the image, any notable elements, the scene context, mood, composition, and other relevant details. Format your response in paragraphs."},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=500
+        )
+        
+        # Extract the detailed description from the response
+        detailed_description = response.choices[0].message.content
+        
+        return {
+            'success': True,
+            'description': detailed_description
+        }
+        
+    except Exception as e:
+        logging.error(f"Error in OpenAI image analysis: {str(e)}")
+        return {
+            'success': False,
+            'error': f"Error in OpenAI image analysis: {str(e)}",
+            'description': "An error occurred while generating the detailed description."
+        }
 
 def get_visualization_data(recognition_result):
     """

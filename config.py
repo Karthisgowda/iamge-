@@ -13,6 +13,9 @@ class Config:
     # Using Imagga API for image recognition
     IMAGE_RECOGNITION_API_URL = 'https://api.imagga.com/v2/tags'
     
+    # OpenAI API configuration for enhanced image analysis
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    
     # File upload settings
     UPLOAD_FOLDER = 'static/uploads'
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB max upload

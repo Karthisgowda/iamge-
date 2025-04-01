@@ -100,6 +100,18 @@
                             <canvas id="resultsChart"></canvas>
                         </div>
                         
+                        <!-- OpenAI Analysis -->
+                        {% if result.openai_analysis and result.openai_analysis.success %}
+                        <div class="mt-4 mb-4">
+                            <h4 class="mb-3">Detailed AI Analysis</h4>
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <p class="mb-0">{{ result.openai_analysis.description|safe|nl2br }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
                         <!-- Result Details -->
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Analysis Date:</span>

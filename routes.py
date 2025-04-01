@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from app import app, db
 from forms import RegistrationForm, LoginForm, ImageUploadForm
 from models import User, ImageResult
-from image_recognition import analyze_image, get_visualization_data
+from image_recognition import analyze_image, analyze_image_with_openai, get_visualization_data
 import logging
 
 # Home route
@@ -90,15 +90,24 @@ def dashboard():
         # Save file
         file.save(file_path)
         
-        # Process the image
+        # Process the image with basic recognition
         recognition_result = analyze_image(file_path)
+        
+        # Also process with OpenAI for enhanced analysis
+        openai_analysis = analyze_image_with_openai(file_path)
+        
+        # Combine results
+        combined_result = {
+            **recognition_result,
+            'openai_analysis': openai_analysis
+        }
         
         # Store result in database
         image_result = ImageResult(
             filename=unique_filename,
             original_filename=original_filename,
             user_id=current_user.id,
-            recognition_data=json.dumps(recognition_result)
+            recognition_data=json.dumps(combined_result)
         )
         db.session.add(image_result)
         db.session.commit()
@@ -115,7 +124,8 @@ def dashboard():
             'visualization_data': visualization_data,
             'success': recognition_result['success'],
             'error': recognition_result.get('error', None),
-            'simulated': recognition_result.get('simulated', False)
+            'simulated': recognition_result.get('simulated', False),
+            'openai_analysis': openai_analysis
         }
         
     # Get 5 most recent results for quick access
@@ -146,6 +156,9 @@ def view_result(result_id):
     recognition_result = json.loads(result.recognition_data)
     visualization_data = get_visualization_data(recognition_result)
     
+    # Extract OpenAI analysis if it exists
+    openai_analysis = recognition_result.get('openai_analysis', {})
+    
     view_data = {
         'id': result.id,
         'filename': result.filename,
@@ -154,7 +167,8 @@ def view_result(result_id):
         'visualization_data': visualization_data,
         'success': recognition_result['success'],
         'error': recognition_result.get('error', None),
-        'simulated': recognition_result.get('simulated', False)
+        'simulated': recognition_result.get('simulated', False),
+        'openai_analysis': openai_analysis
     }
     
     return render_template('dashboard.html', title='Result', result=view_data)
