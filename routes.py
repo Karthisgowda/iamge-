@@ -91,10 +91,29 @@ def dashboard():
         file.save(file_path)
         
         # Process the image with basic recognition
-        recognition_result = analyze_image(file_path)
+        try:
+            logging.debug(f"Starting basic image recognition for {file_path}")
+            recognition_result = analyze_image(file_path)
+            logging.debug(f"Basic recognition result: {recognition_result.get('success')}")
+        except Exception as e:
+            logging.error(f"Error in basic image recognition: {str(e)}")
+            recognition_result = {
+                'success': False,
+                'error': f"Error in basic image recognition: {str(e)}"
+            }
         
         # Also process with OpenAI for enhanced analysis
-        openai_analysis = analyze_image_with_openai(file_path)
+        try:
+            logging.debug(f"Starting OpenAI analysis for {file_path}")
+            openai_analysis = analyze_image_with_openai(file_path)
+            logging.debug(f"OpenAI analysis result: {openai_analysis.get('success')}")
+        except Exception as e:
+            logging.error(f"Error in OpenAI analysis: {str(e)}")
+            openai_analysis = {
+                'success': False,
+                'error': f"Error in OpenAI analysis: {str(e)}",
+                'description': "An error occurred while analyzing the image with OpenAI."
+            }
         
         # Combine results
         combined_result = {

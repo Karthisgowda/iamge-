@@ -97,41 +97,85 @@ def analyze_image_with_openai(image_path):
         }
     
     try:
+        logging.debug(f"Starting OpenAI analysis for image: {image_path}")
+        
         # Initialize OpenAI client
         client = OpenAI(api_key=openai_api_key)
         
+        # Ensure the image file exists
+        if not os.path.exists(image_path):
+            logging.error(f"Image file not found: {image_path}")
+            return {
+                'success': False,
+                'error': f"Image file not found: {image_path}",
+                'description': "The image file could not be found."
+            }
+        
+        # Get file size
+        file_size = os.path.getsize(image_path)
+        logging.debug(f"Image file size: {file_size} bytes")
+        
         # Encode image to base64
-        with open(image_path, "rb") as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+        try:
+            with open(image_path, "rb") as image_file:
+                image_data = image_file.read()
+                base64_image = base64.b64encode(image_data).decode('utf-8')
+                logging.debug(f"Successfully encoded image to base64, length: {len(base64_image)}")
+        except Exception as e:
+            logging.error(f"Error encoding image to base64: {str(e)}")
+            return {
+                'success': False,
+                'error': f"Error encoding image: {str(e)}",
+                'description': "There was a problem processing the image data."
+            }
         
         # Call OpenAI API with the image
-        response = client.chat.completions.create(
-            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-                             # do not change this unless explicitly requested by the user
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**SUBJECT IDENTIFICATION**\nList and identify the key subjects in the image. For people, describe approximate age, gender, clothing, and notable features without making cultural assumptions. For objects, describe their appearance, condition, and unique characteristics.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**IMAGE QUALITY & CHARACTERISTICS**\nAnalysis of image resolution, clarity, any notable editing or filtering, and other technical aspects of the image itself.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**IMAGE METADATA ANALYSIS**\nAnalyze what kind of device likely captured this image, estimation of when it might have been taken (modern, vintage, etc.) and any other technical details that can be inferred.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape, product photography).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
+        try:
+            logging.debug("Calling OpenAI API...")
+            response = client.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                                 # do not change this unless explicitly requested by the user
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**SUBJECT IDENTIFICATION**\nList and identify the key subjects in the image. For people, describe approximate age, gender, clothing, and notable features without making cultural assumptions. For objects, describe their appearance, condition, and unique characteristics.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**IMAGE QUALITY & CHARACTERISTICS**\nAnalysis of image resolution, clarity, any notable editing or filtering, and other technical aspects of the image itself.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**IMAGE METADATA ANALYSIS**\nAnalyze what kind of device likely captured this image, estimation of when it might have been taken (modern, vintage, etc.) and any other technical details that can be inferred.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape, product photography).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                }
                             }
-                        }
-                    ]
-                }
-            ],
-            max_tokens=1500
-        )
+                        ]
+                    }
+                ],
+                max_tokens=1500
+            )
+            logging.debug("OpenAI API response received successfully")
+        except Exception as api_error:
+            logging.error(f"OpenAI API error: {str(api_error)}")
+            return {
+                'success': False,
+                'error': f"OpenAI API error: {str(api_error)}",
+                'description': "There was a problem communicating with the OpenAI service."
+            }
         
         # Extract the detailed description from the response
-        detailed_description = response.choices[0].message.content
-        
-        return {
-            'success': True,
-            'description': detailed_description
-        }
+        try:
+            detailed_description = response.choices[0].message.content
+            logging.debug(f"Successfully extracted description, length: {len(detailed_description)}")
+            
+            return {
+                'success': True,
+                'description': detailed_description
+            }
+        except Exception as extract_error:
+            logging.error(f"Error extracting response content: {str(extract_error)}")
+            return {
+                'success': False,
+                'error': f"Error processing API response: {str(extract_error)}",
+                'description': "There was a problem processing the analysis results."
+            }
         
     except Exception as e:
         logging.error(f"Error in OpenAI image analysis: {str(e)}")
