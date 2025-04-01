@@ -139,7 +139,7 @@ def dashboard():
             'id': image_result.id,
             'filename': unique_filename,
             'original_filename': original_filename,
-            'timestamp': image_result.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'timestamp': image_result.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
             'visualization_data': visualization_data,
             'success': recognition_result['success'],
             'error': recognition_result.get('error', None),
@@ -182,7 +182,7 @@ def view_result(result_id):
         'id': result.id,
         'filename': result.filename,
         'original_filename': result.original_filename,
-        'timestamp': result.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        'timestamp': result.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
         'visualization_data': visualization_data,
         'success': recognition_result['success'],
         'error': recognition_result.get('error', None),
@@ -197,7 +197,19 @@ def view_result(result_id):
 @login_required
 def history():
     """Display all image recognition results for the current user"""
-    results = ImageResult.query.filter_by(user_id=current_user.id)\
+    # Get all image results from the database
+    db_results = ImageResult.query.filter_by(user_id=current_user.id)\
         .order_by(ImageResult.timestamp.desc()).all()
+    
+    # Format results with proper timestamp string
+    results = []
+    for item in db_results:
+        results.append({
+            'id': item.id,
+            'filename': item.filename,
+            'original_filename': item.original_filename,
+            'timestamp': item.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
+            'recognition_data': item.recognition_data
+        })
     
     return render_template('history.html', title='History', results=results)

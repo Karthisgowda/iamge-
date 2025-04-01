@@ -74,7 +74,7 @@
                         <a href="{{ url_for('view_result', result_id=item.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>{{ item.original_filename }}</strong>
-                                <div class="text-muted small">{{ item.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                <div class="text-muted small">{{ item.timestamp }}</div>
                             </div>
                             <span class="badge bg-primary rounded-pill">View</span>
                         </a>
@@ -113,7 +113,7 @@
                                     <div class="row">
                                         <div class="col-md-6 text-start">
                                             <p class="mb-1"><strong>File name:</strong> <span class="text-light">{{ result.original_filename }}</span></p>
-                                            <p class="mb-1"><strong>Upload date:</strong> <span class="text-light">{{ result.timestamp.strftime('%b %d, %Y at %H:%M') }}</span></p>
+                                            <p class="mb-1"><strong>Upload date:</strong> <span class="text-light">{{ result.timestamp }}</span></p>
                                         </div>
                                         <div class="col-md-6 text-start">
                                             <p class="mb-1"><strong>Stored as:</strong> <span class="text-light">{{ result.filename }}</span></p>
