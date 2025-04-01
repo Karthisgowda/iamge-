@@ -43,6 +43,21 @@
                         <div class="d-grid">
                             {{ form.submit(class="btn btn-primary btn-lg", id="submit-btn") }}
                         </div>
+                        
+                        <!-- Analysis Progress Section (Hidden by default) -->
+                        <div id="analysis-progress" class="mt-4 d-none">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">Analyzing Image...</h5>
+                                    <div class="progress mb-3">
+                                        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" 
+                                             style="width: 0%"></div>
+                                    </div>
+                                    <p id="progress-status" class="mb-0 text-center">Preparing image for analysis...</p>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -106,7 +121,9 @@
                             <h4 class="mb-3">Detailed AI Analysis</h4>
                             <div class="card bg-light border-0">
                                 <div class="card-body">
-                                    <p class="mb-0">{{ result.openai_analysis.description|safe|nl2br }}</p>
+                                    <div class="detailed-analysis">
+                                        {{ result.openai_analysis.description|safe|nl2br }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -206,11 +223,45 @@
         // Form submission loading state
         const form = document.querySelector('form');
         const submitBtn = document.getElementById('submit-btn');
+        const progressSection = document.getElementById('analysis-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressStatus = document.getElementById('progress-status');
         
         form.addEventListener('submit', function() {
             if (fileInput.files.length) {
+                // Disable submit button
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Analyzing...';
+                
+                // Show progress section
+                progressSection.classList.remove('d-none');
+                
+                // Simulate progress for better user experience
+                let progress = 0;
+                const interval = setInterval(function() {
+                    // Different stages of analysis with appropriate messages
+                    if (progress <= 20) {
+                        progressStatus.textContent = "Uploading and preparing image...";
+                    } else if (progress <= 40) {
+                        progressStatus.textContent = "Identifying objects and elements in the image...";
+                    } else if (progress <= 60) {
+                        progressStatus.textContent = "Analyzing image composition and context...";
+                    } else if (progress <= 80) {
+                        progressStatus.textContent = "Generating detailed AI description...";
+                    } else {
+                        progressStatus.textContent = "Finalizing results...";
+                    }
+                    
+                    // Update progress bar
+                    progress += Math.random() * 5;
+                    if (progress >= 90) {
+                        progress = 90; // Cap at 90% until server responds
+                        clearInterval(interval);
+                    }
+                    
+                    progressBar.style.width = progress + '%';
+                    progressBar.setAttribute('aria-valuenow', progress);
+                }, 500);
             }
         });
     });

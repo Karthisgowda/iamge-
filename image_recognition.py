@@ -106,12 +106,13 @@ def analyze_image_with_openai(image_path):
         
         # Call OpenAI API with the image
         response = client.chat.completions.create(
-            model="gpt-4-vision-preview",
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                             # do not change this unless explicitly requested by the user
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Provide a detailed analysis of this image. Include what's in the image, any notable elements, the scene context, mood, composition, and other relevant details. Format your response in paragraphs."},
+                        {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**SUBJECT DETAILS**\nMore specific information about the subjects in the image, their appearance, positioning, etc.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -121,7 +122,7 @@ def analyze_image_with_openai(image_path):
                     ]
                 }
             ],
-            max_tokens=500
+            max_tokens=1000
         )
         
         # Extract the detailed description from the response
