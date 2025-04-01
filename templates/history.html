@@ -14,28 +14,47 @@
             {% if results %}
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead>
+                        <thead class="table-dark">
                             <tr>
-                                <th>Image</th>
-                                <th>Filename</th>
-                                <th>Date</th>
-                                <th>Action</th>
+                                <th>Preview</th>
+                                <th>Image Details</th>
+                                <th>Date & Time</th>
+                                <th>Analysis Type</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for result in results %}
                             <tr class="animate-on-scroll fade-in" data-delay="{{ loop.index0 * 100 }}">
-                                <td>
+                                <td class="text-center">
                                     <img src="{{ url_for('static', filename='uploads/' + result.filename) }}" 
                                          class="img-thumbnail" alt="{{ result.original_filename }}" 
-                                         style="max-height: 50px;">
+                                         style="max-height: 60px; max-width: 80px; object-fit: cover;">
                                 </td>
-                                <td>{{ result.original_filename }}</td>
-                                <td>{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-truncate" style="max-width: 200px;" title="{{ result.original_filename }}">
+                                            {{ result.original_filename }}
+                                        </span>
+                                        <small class="text-muted">ID: {{ result.filename.split('.')[0] }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span>{{ result.timestamp.strftime('%b %d, %Y') }}</span>
+                                        <small class="text-muted">{{ result.timestamp.strftime('%H:%M:%S') }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark">Basic Recognition</span>
+                                    {% if result.recognition_data and '"openai_analysis"' in result.recognition_data %}
+                                        <span class="badge bg-success">AI Enhanced</span>
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <a href="{{ url_for('view_result', result_id=result.id) }}" 
                                        class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i> View
+                                        <i class="fas fa-eye"></i> View Details
                                     </a>
                                 </td>
                             </tr>

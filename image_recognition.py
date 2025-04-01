@@ -112,7 +112,7 @@ def analyze_image_with_openai(image_path):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**SUBJECT DETAILS**\nMore specific information about the subjects in the image, their appearance, positioning, etc.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
+                        {"type": "text", "text": "Provide a comprehensive analysis of this image with the following structure. Format each section header with **bold** markdown:\n\n**IMAGE OVERVIEW**\nA brief summary of what's in the image (1-2 sentences).\n\n**MAIN ELEMENTS**\nDetailed description of the primary objects, people, or focal points in the image.\n\n**SUBJECT IDENTIFICATION**\nList and identify the key subjects in the image. For people, describe approximate age, gender, clothing, and notable features without making cultural assumptions. For objects, describe their appearance, condition, and unique characteristics.\n\n**CONTEXT & SETTING**\nAnalysis of the environment, location, time of day, season, etc.\n\n**MOOD & ATMOSPHERE**\nThe emotional tone, lighting, colors, and overall feel of the image.\n\n**COMPOSITION & TECHNICAL ASPECTS**\nNotes on framing, perspective, focus, depth of field, etc.\n\n**IMAGE QUALITY & CHARACTERISTICS**\nAnalysis of image resolution, clarity, any notable editing or filtering, and other technical aspects of the image itself.\n\n**POSSIBLE INTERPRETATIONS**\nPotential meanings, story, or significance of the image content.\n\n**IMAGE METADATA ANALYSIS**\nAnalyze what kind of device likely captured this image, estimation of when it might have been taken (modern, vintage, etc.) and any other technical details that can be inferred.\n\n**POSSIBLE CATEGORIES**\nList 3-5 categories this image could fall under (e.g., nature photography, portrait, urban landscape, product photography).\n\nMake sure to use markdown **bold** for all section headers, and provide detailed analysis in each section."},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -122,7 +122,7 @@ def analyze_image_with_openai(image_path):
                     ]
                 }
             ],
-            max_tokens=1000
+            max_tokens=1500
         )
         
         # Extract the detailed description from the response

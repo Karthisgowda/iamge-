@@ -106,7 +106,22 @@
                                  class="img-fluid rounded shadow-sm" 
                                  alt="{{ result.original_filename }}" 
                                  style="max-height: 300px;">
-                            <p class="text-muted mt-2">{{ result.original_filename }}</p>
+                            <!-- Enhanced image details -->
+                            <div class="card mt-3 mb-4 bg-dark border-0">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary">Image Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 text-start">
+                                            <p class="mb-1"><strong>File name:</strong> <span class="text-light">{{ result.original_filename }}</span></p>
+                                            <p class="mb-1"><strong>Upload date:</strong> <span class="text-light">{{ result.timestamp.strftime('%b %d, %Y at %H:%M') }}</span></p>
+                                        </div>
+                                        <div class="col-md-6 text-start">
+                                            <p class="mb-1"><strong>Stored as:</strong> <span class="text-light">{{ result.filename }}</span></p>
+                                            <p class="mb-1"><strong>Analyzed by:</strong> <span class="text-light">{{ current_user.username }}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Results Visualization -->
