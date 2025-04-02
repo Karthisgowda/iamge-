@@ -21,8 +21,20 @@ login_manager = LoginManager()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 
-# Database Configuration - Use PostgreSQL from environment
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# Database Configuration - Support multiple database types
+# On Replit, use PostgreSQL from environment variables
+# For local development, either use SQLite, MySQL or PostgreSQL
+
+# Check if we're running on Replit with PostgreSQL
+if os.environ.get('DATABASE_URL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+else:
+    # For local development with MySQL, uncomment this and comment out the SQLite line below
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/image_recognition_db'
+    
+    # For local development with SQLite (simplest option)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///image_recognition.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "pool_recycle": 300,
