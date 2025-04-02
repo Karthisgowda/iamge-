@@ -6,6 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
 
+# Try to load environment variables from .env file if dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load environment variables from .env file if it exists
+    print("Environment variables loaded from .env file")
+except ImportError:
+    print("python-dotenv not installed. Using system environment variables only.")
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -21,19 +29,25 @@ login_manager = LoginManager()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 
-# Database Configuration - Support multiple database types
-# On Replit, use PostgreSQL from environment variables
-# For local development, either use SQLite, MySQL or PostgreSQL
+# Database Configuration - Optimized for XAMPP MySQL
+# Default to MySQL with XAMPP configuration
 
 # Check if we're running on Replit with PostgreSQL
 if os.environ.get('DATABASE_URL'):
+    # Replit environment with PostgreSQL
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 else:
-    # For local development with MySQL, uncomment this and comment out the SQLite line below
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/image_recognition_db'
+    # XAMPP MySQL configuration
+    mysql_user = os.environ.get('MYSQL_USER', 'root')
+    mysql_password = os.environ.get('MYSQL_PASSWORD', '')  # Default empty password for XAMPP
+    mysql_host = os.environ.get('MYSQL_HOST', 'localhost')
+    mysql_port = os.environ.get('MYSQL_PORT', '3306')
+    mysql_db = os.environ.get('MYSQL_DATABASE', 'image_recognition_db')
     
-    # For local development with SQLite (simplest option)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///image_recognition.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_db}'
+    
+    # Fallback to SQLite if MySQL connection fails
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///image_recognition.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
