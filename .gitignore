@@ -10,3 +10,5 @@ uploads/*
 static/uploads/*
 *.sqlite
 *.db
+
+.vercel

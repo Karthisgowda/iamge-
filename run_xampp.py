@@ -22,6 +22,7 @@ except ImportError:
 
 # Ensure we're using absolute paths for XAMPP environment
 BASE_DIR = Path(__file__).resolve().parent
+os.chdir(BASE_DIR)
 
 # Create uploads folder if it doesn't exist
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")

@@ -32,6 +32,21 @@ An interactive web application for image recognition using machine learning to p
    - If you encounter any issues, see `XAMPP_TROUBLESHOOTING.md`
    - The troubleshooting guide covers common connection and navigation problems
 
+### Run From VS Code Terminal
+
+If you see `can't open file ... app.py: [Errno 2] No such file or directory`, your terminal is not in the folder that contains `app.py`.
+
+Run these commands from PowerShell:
+
+```powershell
+cd path\to\image-recognization--main
+dir app.py
+python -m pip install -r local-requirements.txt
+python app.py
+```
+
+If `dir app.py` says the file is missing, open the folder that contains the project files or download the latest code again from GitHub.
+
 ### Alternative Manual Setup
 
 1. **Start XAMPP**:

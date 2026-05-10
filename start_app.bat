@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo ===============================================
 echo Image Recognition App - XAMPP Launcher
 echo ===============================================
@@ -39,4 +40,4 @@ start http://localhost:5000
 REM Start the application
 python run_xampp.py
 
-paus
+pause
