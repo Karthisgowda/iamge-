@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from app import app, db
 from forms import RegistrationForm, LoginForm, ImageUploadForm
 from models import User, ImageResult
-from image_recognition import analyze_image, analyze_image_with_openai, get_visualization_data
+from image_recognition import analyze_image, analyze_image_with_groq, get_visualization_data
 import logging
 
 # Ensure uploads directory exists
@@ -106,13 +106,13 @@ def dashboard():
                 'error': f"Error in basic image recognition: {str(e)}"
             }
         
-        # Also process with OpenAI API for enhanced analysis
+        # Also process with Groq API for enhanced analysis
         try:
-            logging.debug(f"Starting OpenAI API analysis for {file_path}")
-            openai_analysis = analyze_image_with_openai(file_path)
-            logging.debug(f"OpenAI API analysis result: {openai_analysis.get('success')}")
+            logging.debug(f"Starting Groq API analysis for {file_path}")
+            openai_analysis = analyze_image_with_groq(file_path)
+            logging.debug(f"Groq API analysis result: {openai_analysis.get('success')}")
             
-            # If OpenAI API analysis failed but we have basic recognition data,
+            # If Groq API analysis failed but we have basic recognition data,
             # add more detailed information about the image itself
             if not openai_analysis.get('success', False) and recognition_result.get('success', False):
                 # Get file info for additional details
@@ -148,7 +148,7 @@ Based on our analysis, this image contains the following elements:
 **TECHNICAL INFORMATION**
 
 The image has been successfully processed through our basic recognition system.
-For a more detailed AI analysis, please try again later when our enhanced analysis service is available.
+For a more detailed AI analysis, please try again later when our Groq enhanced analysis service is available.
 
 **SUGGESTIONS**
 
@@ -161,11 +161,11 @@ For a more detailed AI analysis, please try again later when our enhanced analys
                 openai_analysis['success'] = True
                 openai_analysis['is_fallback'] = True
         except Exception as e:
-            logging.error(f"Error in OpenAI API analysis: {str(e)}")
+            logging.error(f"Error in Groq API analysis: {str(e)}")
             openai_analysis = {
                 'success': False,
-                'error': f"Error in OpenAI API analysis: {str(e)}",
-                'description': "An error occurred while analyzing the image with OpenAI API."
+                'error': f"Error in Groq API analysis: {str(e)}",
+                'description': "An error occurred while analyzing the image with Groq API."
             }
         
         # Combine results
@@ -234,7 +234,7 @@ def view_result(result_id):
     recognition_result = json.loads(result.recognition_data)
     visualization_data = get_visualization_data(recognition_result)
     
-    # Extract OpenAI API analysis if it exists
+    # Extract enhanced AI analysis if it exists.
     openai_analysis = recognition_result.get('openai_analysis', {})
     
     # For backward compatibility with existing database records that might have lama_analysis

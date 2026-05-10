@@ -13,9 +13,9 @@ class Config:
     # Using Imagga API for image recognition
     IMAGE_RECOGNITION_API_URL = 'https://api.imagga.com/v2/tags'
     
-    # OpenAI API configuration for enhanced image analysis
-    # Use the OpenAI API key for detailed image analysis
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    # Groq API configuration for enhanced image analysis
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+    GROQ_MODEL = os.environ.get('GROQ_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct')
     
     # File upload settings
     UPLOAD_FOLDER = 'static/uploads'

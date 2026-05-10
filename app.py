@@ -27,7 +27,11 @@ login_manager = LoginManager()
 
 # Create Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
+app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24).hex())
+
+# Ensure URLs are generated correctly when behind a proxy or running under XAMPP
+app.config['PREFERRED_URL_SCHEME'] = 'http'
+app.config['SERVER_NAME'] = os.environ.get('SERVER_NAME')  # Only set if specified in environment
 
 # Database Configuration - Optimized for XAMPP MySQL
 # Default to MySQL with XAMPP configuration
@@ -56,15 +60,17 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 # Initialize paths
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
-app.config['UPLOAD_FOLDER'] = "uploads"
+upload_folder = os.path.join("static", "uploads")
+if not os.path.exists(upload_folder):
+    os.makedirs(upload_folder)
+app.config['UPLOAD_FOLDER'] = upload_folder
 
-# Config for image recognition and OpenAI API
+# Config for image recognition and Groq API
 app.config['IMAGE_RECOGNITION_API_KEY'] = os.environ.get('IMAGE_RECOGNITION_API_KEY', 'default_key')
 app.config['IMAGE_RECOGNITION_API_SECRET'] = os.environ.get('IMAGE_RECOGNITION_API_SECRET', 'default_secret')
 app.config['IMAGE_RECOGNITION_API_URL'] = 'https://api.imagga.com/v2/tags'
-app.config['OPENAI_API_KEY'] = os.environ.get('OPENAI_API_KEY')
+app.config['GROQ_API_KEY'] = os.environ.get('GROQ_API_KEY')
+app.config['GROQ_MODEL'] = os.environ.get('GROQ_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 

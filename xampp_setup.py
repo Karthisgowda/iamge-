@@ -40,8 +40,7 @@ required_packages = [
     "requests"
 ]
 
-# OpenAI is optional but recommended
-optional_packages = ["openai"]
+optional_packages = []
 
 print("\n===== Image Recognition App XAMPP Setup =====\n")
 
@@ -87,9 +86,10 @@ if not os.path.exists('.env'):
         f.write("MYSQL_PORT=3306\n")
         f.write("MYSQL_DATABASE=image_recognition_db\n")
         
-        # Add a placeholder for OpenAI API key
-        f.write("# Set your OpenAI API key here for advanced image analysis\n")
-        f.write("# OPENAI_API_KEY=your_key_here\n")
+        # Add a placeholder for Groq API key
+        f.write("# Set your Groq API key here for advanced image analysis\n")
+        f.write("# GROQ_API_KEY=your_key_here\n")
+        f.write("GROQ_MODEL=meta-llama/llama-4-scout-17b-16e-instruct\n")
     
     print("✓ .env file created with default settings")
 else:
@@ -165,7 +165,7 @@ To run the application:
 2. Run the application with: python app.py
 3. Access the application at: http://localhost:5000
 
-For OpenAI image analysis:
-- Edit the .env file and uncomment the OPENAI_API_KEY line
-- Add your API key from https://platform.openai.com/api-keys
+For Groq image analysis:
+- Edit the .env file and uncomment the GROQ_API_KEY line
+- Add your API key from https://console.groq.com/keys
 """)

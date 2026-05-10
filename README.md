@@ -10,7 +10,7 @@ An interactive web application for image recognition using machine learning to p
 2. **Python 3.9+**: Install [Python](https://www.python.org/downloads/) (3.9 or newer)
 3. **Git** (optional): For cloning the repository
 
-### Quick Setup
+### Easiest Method (New!)
 
 1. **Start XAMPP**:
    - Launch XAMPP Control Panel
@@ -19,6 +19,28 @@ An interactive web application for image recognition using machine learning to p
 2. **Download Application**:
    - Download the project files to your computer
    - Extract to a folder of your choice (doesn't need to be in htdocs)
+
+3. **Run the Batch File**:
+   - Double-click `start_app.bat` in the project folder
+   - This will automatically:
+     - Check for required directories
+     - Configure the database connection
+     - Start the application
+     - Open your browser to the correct URL
+
+4. **Troubleshooting**:
+   - If you encounter any issues, see `XAMPP_TROUBLESHOOTING.md`
+   - The troubleshooting guide covers common connection and navigation problems
+
+### Alternative Manual Setup
+
+1. **Start XAMPP**:
+   - Launch XAMPP Control Panel
+   - Start Apache and MySQL services
+
+2. **Download Application**:
+   - Download the project files to your computer
+   - Extract to a folder of your choice
 
 3. **Run Setup Script**:
    ```
@@ -37,6 +59,10 @@ An interactive web application for image recognition using machine learning to p
    ```
 
 4. **Start the Application**:
+   ```
+   python run_xampp.py
+   ```
+   Or use the original method:
    ```
    python app.py
    ```
@@ -68,6 +94,7 @@ If you prefer manual setup:
      MYSQL_USER=root
      MYSQL_PASSWORD=
      MYSQL_DATABASE=image_recognition_db
+     GROQ_API_KEY=your_groq_api_key_here
      ```
 
 5. **Start the Application**:
@@ -77,14 +104,15 @@ If you prefer manual setup:
 
 ## Advanced Features
 
-### OpenAI Image Analysis
+### Groq Image Analysis
 
 For detailed AI-powered image analysis:
 
-1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
+1. Get an API key from [Groq](https://console.groq.com/keys)
 2. Add to your `.env` file:
    ```
-   OPENAI_API_KEY=your_api_key_here
+   GROQ_API_KEY=your_api_key_here
+   GROQ_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
    ```
 
 ### Apache Integration (Advanced)
@@ -101,18 +129,21 @@ This allows you to access the app directly through Apache at http://image-recogn
 
 ## Troubleshooting
 
-### Database Connection Issues
+For detailed troubleshooting steps, please see our [XAMPP Troubleshooting Guide](XAMPP_TROUBLESHOOTING.md).
+
+### Common Database Connection Issues
 
 - **MySQL Not Running**: Make sure MySQL is started in XAMPP Control Panel
 - **Wrong Credentials**: Default is username "root" with no password
 - **Port Conflict**: Check if MySQL is running on a non-standard port
 - **Database Missing**: Ensure "image_recognition_db" exists in phpMyAdmin
 
-### Application Errors
+### Common Application Errors
 
-- **Missing Packages**: Run `pip install -r requirements.txt`
+- **Missing Packages**: Run `pip install -r local-requirements.txt`
 - **Upload Issues**: Ensure "uploads" folder exists and is writable
 - **Browser Cache**: Try Ctrl+F5 to refresh with cache clear
+- **Navigation Issues**: See our troubleshooting guide for page interconnection problems
 
 ## Running in Production
 

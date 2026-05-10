@@ -75,9 +75,9 @@ def simulate_recognition_results():
         'simulated': True
     }
 
-def analyze_image_with_openai(image_path):
+def analyze_image_with_groq(image_path):
     """
-    Process an image using OpenAI API for detailed analysis
+    Process an image using Groq API for detailed analysis
     
     Args:
         image_path (str): Path to the image file
@@ -85,18 +85,19 @@ def analyze_image_with_openai(image_path):
     Returns:
         dict: Detailed analysis of the image content
     """
-    api_key = current_app.config['OPENAI_API_KEY']  # Using the OpenAI API key
+    api_key = current_app.config.get('GROQ_API_KEY')
+    model = current_app.config.get('GROQ_MODEL', 'meta-llama/llama-4-scout-17b-16e-instruct')
     
     if not api_key:
-        logging.warning("OpenAI API key not provided - detailed analysis unavailable")
+        logging.warning("Groq API key not provided - detailed analysis unavailable")
         return {
             'success': False,
-            'error': "OpenAI API key not provided",
+            'error': "Groq API key not provided",
             'description': "Unable to generate detailed description without an API key."
         }
     
     try:
-        logging.debug(f"Starting OpenAI analysis for image: {image_path}")
+        logging.debug(f"Starting Groq analysis for image: {image_path}")
         
         # Ensure the image file exists
         if not os.path.exists(image_path):
@@ -111,8 +112,8 @@ def analyze_image_with_openai(image_path):
         file_size = os.path.getsize(image_path)
         logging.debug(f"Image file size: {file_size} bytes")
         
-        # Prepare to send the request to OpenAI API
-        api_url = "https://api.openai.com/v1/chat/completions"
+        # Prepare to send the request to Groq's OpenAI-compatible API
+        api_url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -124,9 +125,9 @@ def analyze_image_with_openai(image_path):
             image_file = open(image_path, 'rb')
             image_data = base64.b64encode(image_file.read()).decode('utf-8')
             
-            # Prepare the request payload for OpenAI Chat API with image
+            # Prepare the request payload for Groq Chat API with image
             payload = {
-                "model": "gpt-4-vision-preview",
+                "model": model,
                 "messages": [
                     {
                         "role": "user",
@@ -144,17 +145,20 @@ def analyze_image_with_openai(image_path):
                         ]
                     }
                 ],
-                "max_tokens": 800
+                "max_completion_tokens": 800,
+                "temperature": 0.2,
+                "top_p": 1,
+                "stream": False
             }
             
-            logging.debug("Calling OpenAI API...")
+            logging.debug("Calling Groq API...")
             response = requests.post(api_url, headers=headers, json=payload)
-            logging.debug(f"OpenAI API response status code: {response.status_code}")
+            logging.debug(f"Groq API response status code: {response.status_code}")
             
             if response.status_code == 200:
                 try:
                     result = response.json()
-                    # Extract text content from OpenAI response
+                    # Extract text content from Groq response
                     content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
                     
                     # Get current time for the analysis timestamp
@@ -172,27 +176,27 @@ def analyze_image_with_openai(image_path):
 * Analysis Time: {current_time}
 
 ## Note
-This analysis was generated using OpenAI's vision model."""
+This analysis was generated using Groq's vision model."""
                     
                     return {
                         'success': True,
                         'description': description
                     }
                 except Exception as json_error:
-                    logging.error(f"Error parsing OpenAI API response: {str(json_error)}")
+                    logging.error(f"Error parsing Groq API response: {str(json_error)}")
                     return {
                         'success': False,
                         'error': f"Error parsing API response: {str(json_error)}",
                         'description': "There was a problem understanding the analysis results."
                     }
             elif response.status_code == 401:
-                logging.error("OpenAI API authentication error: Invalid API key")
+                logging.error("Groq API authentication error: Invalid API key")
                 return {
                     'success': False,
-                    'error': "OpenAI API authentication failed",
+                    'error': "Groq API authentication failed",
                     'description': """# Enhanced Image Analysis Unavailable
 
-The OpenAI API authentication failed. This could be due to an invalid or expired API key.
+The Groq API authentication failed. This could be due to an invalid or expired API key.
 
 ## What you can see instead:
 * Basic image recognition tags are still available
@@ -203,13 +207,13 @@ The OpenAI API authentication failed. This could be due to an invalid or expired
 Please check your API key and make sure it's valid and active."""
                 }
             elif response.status_code == 429:
-                logging.error("OpenAI API rate limit exceeded")
+                logging.error("Groq API rate limit exceeded")
                 return {
                     'success': False,
-                    'error': "OpenAI API rate limit exceeded",
+                    'error': "Groq API rate limit exceeded",
                     'description': """# Enhanced Image Analysis Unavailable
 
-We're currently experiencing high demand for our AI-powered image analysis feature. The OpenAI service has temporarily limited access due to rate limiting.
+We're currently experiencing high demand for our AI-powered image analysis feature. The Groq service has temporarily limited access due to rate limiting.
 
 ## What you can see instead:
 * Basic image recognition tags are still available
@@ -220,14 +224,14 @@ We're currently experiencing high demand for our AI-powered image analysis featu
 API quota typically refreshes after a short period. Please try again in a few minutes, or contact support if this issue persists."""
                 }
             else:
-                logging.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                logging.error(f"Groq API error: {response.status_code} - {response.text}")
                 return {
                     'success': False,
-                    'error': f"OpenAI API error: {response.status_code}",
-                    'description': "There was a problem communicating with the OpenAI service. Please try again later."
+                    'error': f"Groq API error: {response.status_code}",
+                    'description': "There was a problem communicating with the Groq service. Please try again later."
                 }
         except Exception as request_error:
-            logging.error(f"Error making OpenAI API request: {str(request_error)}")
+            logging.error(f"Error making Groq API request: {str(request_error)}")
             return {
                 'success': False,
                 'error': f"Error making API request: {str(request_error)}",
@@ -242,12 +246,16 @@ API quota typically refreshes after a short period. Please try again in a few mi
                     logging.error(f"Error closing image file: {str(close_error)}")
         
     except Exception as e:
-        logging.error(f"Error in OpenAI image analysis: {str(e)}")
+        logging.error(f"Error in Groq image analysis: {str(e)}")
         return {
             'success': False,
-            'error': f"Error in OpenAI image analysis: {str(e)}",
+            'error': f"Error in Groq image analysis: {str(e)}",
             'description': "An error occurred while generating the detailed description."
         }
+
+def analyze_image_with_openai(image_path):
+    """Backward-compatible wrapper for existing imports and stored result keys."""
+    return analyze_image_with_groq(image_path)
 
 def get_visualization_data(recognition_result):
     """
