@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from flask import Flask, render_template, send_from_directory
 from markupsafe import Markup
@@ -27,33 +28,37 @@ login_manager = LoginManager()
 
 # Create Flask application
 app = Flask(__name__)
+sys.modules.setdefault("app", sys.modules[__name__])
 app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24).hex())
 
 # Ensure URLs are generated correctly when behind a proxy or running under XAMPP
 app.config['PREFERRED_URL_SCHEME'] = 'http'
 app.config['SERVER_NAME'] = os.environ.get('SERVER_NAME')  # Only set if specified in environment
 
-# Database Configuration - Optimized for XAMPP MySQL
-# Default to MySQL with XAMPP configuration
+def local_sqlite_uri():
+    instance_dir = os.path.join(app.root_path, "instance")
+    os.makedirs(instance_dir, exist_ok=True)
+    db_path = os.path.join(instance_dir, "image_recognition.db")
+    return f"sqlite:///{db_path.replace(os.sep, '/')}"
 
-# Check if we're running on Replit with PostgreSQL
-if os.environ.get('DATABASE_URL'):
-    # Replit environment with PostgreSQL
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-elif os.environ.get('VERCEL'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/image_recognition.db'
-else:
-    # XAMPP MySQL configuration
+def mysql_uri_from_env():
     mysql_user = os.environ.get('MYSQL_USER', 'root')
-    mysql_password = os.environ.get('MYSQL_PASSWORD', '')  # Default empty password for XAMPP
+    mysql_password = os.environ.get('MYSQL_PASSWORD', '')
     mysql_host = os.environ.get('MYSQL_HOST', 'localhost')
     mysql_port = os.environ.get('MYSQL_PORT', '3306')
     mysql_db = os.environ.get('MYSQL_DATABASE', 'image_recognition_db')
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_db}'
-    
-    # Fallback to SQLite if MySQL connection fails
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///image_recognition.db'
+    return f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}:{mysql_port}/{mysql_db}'
+
+# Database configuration. Local development uses SQLite by default so the app
+# starts without XAMPP/MySQL. Set DATABASE_URL or USE_MYSQL=1 to use MySQL.
+if os.environ.get('DATABASE_URL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+elif os.environ.get('VERCEL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/image_recognition.db'
+elif os.environ.get('USE_MYSQL') == '1':
+    app.config['SQLALCHEMY_DATABASE_URI'] = mysql_uri_from_env()
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = local_sqlite_uri()
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -106,7 +111,20 @@ def uploaded_file(filename):
 with app.app_context():
     # Import models to ensure they're registered with SQLAlchemy
     from models import User, ImageResult
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as error:
+        if os.environ.get('VERCEL') or os.environ.get('STRICT_DATABASE_URL') == '1':
+            raise
+
+        logging.warning(
+            "Database connection failed (%s). Falling back to local SQLite.",
+            error
+        )
+        db.session.remove()
+        db.engine.dispose()
+        app.config['SQLALCHEMY_DATABASE_URI'] = local_sqlite_uri()
+        db.create_all()
 
 # Import routes
 from routes import *

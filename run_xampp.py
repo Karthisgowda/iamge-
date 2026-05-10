@@ -1,8 +1,8 @@
 """
-XAMPP Startup Script for Image Recognition Application
-----------------------------------------------------
-This script simplifies running the application in XAMPP environment
-by setting the proper configuration and starting the application.
+Local startup script for the Image Recognition application.
+
+By default this uses SQLite so the app runs without XAMPP/MySQL. If you want
+MySQL, set USE_MYSQL=1 and provide the MYSQL_* variables in .env.
 """
 
 import os
@@ -30,7 +30,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
     print(f"Created upload folder: {UPLOAD_FOLDER}")
 
-# Ensure we have a .env file with database settings
+# Ensure we have a .env file with local settings
 ENV_FILE = os.path.join(BASE_DIR, ".env")
 if not os.path.exists(ENV_FILE):
     # Generate a random secret key
@@ -40,60 +40,47 @@ if not os.path.exists(ENV_FILE):
     # Create the .env file with default settings
     with open(ENV_FILE, "w") as f:
         f.write(f"SESSION_SECRET={secret_key}\n")
-        f.write("MYSQL_USER=root\n")
-        f.write("MYSQL_PASSWORD=\n")  # Default empty for XAMPP
-        f.write("MYSQL_HOST=localhost\n")
-        f.write("MYSQL_PORT=3306\n")
-        f.write("MYSQL_DATABASE=image_recognition_db\n")
-        f.write("DATABASE_URL=mysql+pymysql://root:@localhost/image_recognition_db\n")
+        f.write("# Local default uses SQLite. Uncomment USE_MYSQL to use XAMPP MySQL.\n")
+        f.write("# USE_MYSQL=1\n")
+        f.write("# MYSQL_USER=root\n")
+        f.write("# MYSQL_PASSWORD=\n")
+        f.write("# MYSQL_HOST=localhost\n")
+        f.write("# MYSQL_PORT=3306\n")
+        f.write("# MYSQL_DATABASE=image_recognition_db\n")
         f.write("# GROQ_API_KEY=your_key_here\n")
         f.write("GROQ_MODEL=meta-llama/llama-4-scout-17b-16e-instruct\n")
     print(f"Created .env file with default settings: {ENV_FILE}")
 else:
     print(f"Using existing .env file: {ENV_FILE}")
 
-print("\nChecking MySQL connection...")
-try:
-    import pymysql
+if os.environ.get("USE_MYSQL") == "1":
+    print("\nUSE_MYSQL=1 detected. Checking MySQL connection...")
     try:
-        # Try to connect to MySQL
+        import pymysql
         conn = pymysql.connect(
             host=os.environ.get("MYSQL_HOST", "localhost"),
             user=os.environ.get("MYSQL_USER", "root"),
             password=os.environ.get("MYSQL_PASSWORD", ""),
             port=int(os.environ.get("MYSQL_PORT", 3306))
         )
-        
-        # Check if database exists
         with conn.cursor() as cursor:
             cursor.execute("SHOW DATABASES LIKE 'image_recognition_db'")
-            result = cursor.fetchone()
-            
-            if not result:
+            if not cursor.fetchone():
                 print("Creating database: image_recognition_db")
                 cursor.execute("CREATE DATABASE image_recognition_db")
                 conn.commit()
-                print("Database created successfully")
-            else:
-                print("Database already exists: image_recognition_db")
-                
         conn.close()
         print("MySQL connection successful!")
     except Exception as e:
         print(f"MySQL connection error: {e}")
-        print("Please ensure XAMPP MySQL service is running")
-        print("Common issues:")
-        print("- MySQL service not started in XAMPP")
-        print("- Incorrect MySQL password (default is empty)")
-        print("- MySQL using non-default port")
-        sys.exit(1)  # Exit with error
-except ImportError:
-    print("Error: pymysql not installed. Run: pip install pymysql")
-    sys.exit(1)  # Exit with error
+        print("Remove USE_MYSQL=1 from .env to use SQLite instead.")
+        sys.exit(1)
+else:
+    print("\nUsing local SQLite database. XAMPP/MySQL is not required.")
 
 # Print information about the application
 print("\n===============================================")
-print("Image Recognition App - XAMPP Edition")
+print("Image Recognition App - Local Edition")
 print("===============================================")
 print("Starting the application...")
 print("URL: http://localhost:5000")

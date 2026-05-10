@@ -2,33 +2,29 @@
 
 An interactive web application for image recognition using machine learning to provide detailed visual analysis. Features user accounts, image upload, recognition results visualization, and history tracking.
 
-## XAMPP Setup Instructions
+## Local Setup Instructions
 
 ### Prerequisites
 
-1. **XAMPP**: Install [XAMPP](https://www.apachefriends.org/index.html) for your operating system
-2. **Python 3.9+**: Install [Python](https://www.python.org/downloads/) (3.9 or newer)
-3. **Git** (optional): For cloning the repository
+1. **Python 3.9+**: Install [Python](https://www.python.org/downloads/) and enable "Add Python to PATH"
+2. **Git** (optional): For cloning the repository
 
-### Easiest Method (New!)
+### Easiest Method
 
-1. **Start XAMPP**:
-   - Launch XAMPP Control Panel
-   - Start Apache and MySQL services
-
-2. **Download Application**:
+1. **Download Application**:
    - Download the project files to your computer
-   - Extract to a folder of your choice (doesn't need to be in htdocs)
+   - Extract the zip
+   - Open the folder that contains `app.py`
 
-3. **Run the Batch File**:
-   - Double-click `start_app.bat` in the project folder
+2. **Run the Batch File**:
+   - Double-click `run_local.bat`
    - This will automatically:
-     - Check for required directories
-     - Configure the database connection
+     - Install required packages
+     - Use a local SQLite database
      - Start the application
      - Open your browser to the correct URL
 
-4. **Troubleshooting**:
+3. **Troubleshooting**:
    - If you encounter any issues, see `XAMPP_TROUBLESHOOTING.md`
    - The troubleshooting guide covers common connection and navigation problems
 
@@ -47,75 +43,18 @@ python app.py
 
 If `dir app.py` says the file is missing, open the folder that contains the project files or download the latest code again from GitHub.
 
-### Alternative Manual Setup
+### Optional Groq Key
 
-1. **Start XAMPP**:
-   - Launch XAMPP Control Panel
-   - Start Apache and MySQL services
+The app runs without a Groq key, but detailed AI image analysis needs one.
 
-2. **Download Application**:
-   - Download the project files to your computer
-   - Extract to a folder of your choice
-
-3. **Run Setup Script**:
-   ```
-   cd path/to/your/project
-   python xampp_setup.py
-   ```
-   This script will:
-   - Install required Python packages
-   - Test MySQL connection
-   - Create the database if needed
-   - Set up environment variables
-   
-   **Alternative**: Install packages manually:
-   ```
-   pip install -r local-requirements.txt
-   ```
-
-4. **Start the Application**:
-   ```
-   python run_xampp.py
-   ```
-   Or use the original method:
-   ```
-   python app.py
-   ```
-
-5. **Access the Application**:
-   - Open your browser
-   - Visit: http://localhost:5000
-
-### Manual Setup (Alternative)
-
-If you prefer manual setup:
-
-1. **Start XAMPP** with Apache and MySQL
-
-2. **Create Database**:
-   - Open phpMyAdmin (http://localhost/phpmyadmin/)
-   - Create a new database named "image_recognition_db"
-
-3. **Install Required Packages**:
-   ```
-   pip install flask flask-login flask-sqlalchemy flask-wtf pymysql email-validator markdown markupsafe werkzeug requests
-   ```
-
-4. **Create Environment Variables**:
+1. **Create Environment Variables**:
    - Create a file named `.env` in the project root
    - Add:
      ```
      SESSION_SECRET=your_random_string
-     MYSQL_USER=root
-     MYSQL_PASSWORD=
-     MYSQL_DATABASE=image_recognition_db
      GROQ_API_KEY=your_groq_api_key_here
+     GROQ_MODEL=meta-llama/llama-4-scout-17b-16e-instruct
      ```
-
-5. **Start the Application**:
-   ```
-   python app.py
-   ```
 
 ## Advanced Features
 
