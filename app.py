@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from markupsafe import Markup
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -40,6 +40,8 @@ app.config['SERVER_NAME'] = os.environ.get('SERVER_NAME')  # Only set if specifi
 if os.environ.get('DATABASE_URL'):
     # Replit environment with PostgreSQL
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+elif os.environ.get('VERCEL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/image_recognition.db'
 else:
     # XAMPP MySQL configuration
     mysql_user = os.environ.get('MYSQL_USER', 'root')
@@ -60,7 +62,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 # Initialize paths
-upload_folder = os.path.join("static", "uploads")
+upload_folder = os.path.join("/tmp", "uploads") if os.environ.get('VERCEL') else os.path.join("static", "uploads")
 if not os.path.exists(upload_folder):
     os.makedirs(upload_folder)
 app.config['UPLOAD_FOLDER'] = upload_folder
@@ -95,6 +97,10 @@ def markdown_filter(text):
         return ""
     import markdown
     return Markup(markdown.markdown(text, extensions=['extra']))
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Create database tables within app context
 with app.app_context():
