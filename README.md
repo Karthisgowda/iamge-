@@ -9,22 +9,34 @@ An interactive web application for image recognition using machine learning to p
 1. **Python 3.9+**: Install [Python](https://www.python.org/downloads/) and enable "Add Python to PATH"
 2. **Git** (optional): For cloning the repository
 
-### Easiest Method
+### Easiest Method With npm
 
 1. **Download Application**:
    - Download the project files to your computer
    - Extract the zip
    - Open the folder that contains `app.py`
 
-2. **Run the Batch File**:
-   - Double-click `run_local.bat`
-   - This will automatically:
-     - Install required packages
-     - Use a local SQLite database
-     - Start the application
-     - Open your browser to the correct URL
+2. **Run from PowerShell**:
+   ```powershell
+   cd path\to\image-recognization--main
+   dir app.py
+   npm run setup
+   npm start
+   ```
 
-3. **Troubleshooting**:
+3. **Open the app**:
+   - Visit http://localhost:5000
+
+The npm scripts run the Python Flask app and use a local SQLite database automatically. XAMPP/MySQL is not required.
+
+If PowerShell blocks `npm`, use `npm.cmd`:
+
+```powershell
+npm.cmd run setup
+npm.cmd start
+```
+
+4. **Troubleshooting**:
    - If you encounter any issues, see `XAMPP_TROUBLESHOOTING.md`
    - The troubleshooting guide covers common connection and navigation problems
 
