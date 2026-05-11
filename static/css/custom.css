@@ -182,7 +182,7 @@
 }
 
 .alert .detailed-analysis ul li:before {
-    content: "•";
+    content: "*";
     position: absolute;
     left: -1rem;
     color: #856404;

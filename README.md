@@ -2,6 +2,8 @@
 
 An interactive web application for image recognition using machine learning to provide detailed visual analysis. Features user accounts, image upload, recognition results visualization, and history tracking.
 
+Repository: https://github.com/Karthisgowda/iamge-.git
+
 ## Local Setup Instructions
 
 ### Prerequisites
@@ -11,14 +13,14 @@ An interactive web application for image recognition using machine learning to p
 
 ### Easiest Method With npm
 
-1. **Download Application**:
-   - Download the project files to your computer
-   - Extract the zip
-   - Open the folder that contains `app.py`
+1. **Clone or open the project**:
+   ```powershell
+   git clone https://github.com/Karthisgowda/iamge-.git
+   cd iamge-
+   ```
 
 2. **Run from PowerShell**:
    ```powershell
-   cd path\to\image-recognization--main
    dir app.py
    npm install
    npm run setup
@@ -48,13 +50,13 @@ If you previously ran the XAMPP version and have an old `.env` file, you do not 
 
 If you see `can't open file ... app.py: [Errno 2] No such file or directory`, your terminal is not in the folder that contains `app.py`.
 
-Run these commands from PowerShell:
+Open VS Code, choose **File > Open Folder**, select the folder that contains `app.py`, then open the integrated terminal with **Terminal > New Terminal** and run:
 
 ```powershell
-cd path\to\image-recognization--main
 dir app.py
-python -m pip install -r local-requirements.txt
-python app.py
+npm install
+npm run setup
+npm start
 ```
 
 If `dir app.py` says the file is missing, open the folder that contains the project files or download the latest code again from GitHub.

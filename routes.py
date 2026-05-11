@@ -139,7 +139,7 @@ Based on our analysis, this image contains the following elements:
                         for i, tag in enumerate(top_tags):
                             confidence = tag['confidence']
                             tag_name = tag['tag']['en']
-                            confidence_star = "★" * int(confidence/20) + "☆" * (5 - int(confidence/20))
+                            confidence_star = "*" * int(confidence / 20) + "-" * (5 - int(confidence / 20))
                             openai_analysis['description'] += f"\n- **{tag_name}** ({confidence:.1f}% confidence) <span class=\"confidence-stars\">{confidence_star}</span>"
                     
                     # Add more information and suggestions
