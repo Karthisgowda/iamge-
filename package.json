@@ -4,10 +4,10 @@
   "private": true,
   "description": "Flask image recognition app runnable through npm scripts.",
   "scripts": {
-    "setup": "python -m pip install -r local-requirements.txt",
-    "start": "python app.py",
-    "dev": "python app.py",
-    "check": "python -m py_compile app.py config.py forms.py image_recognition.py main.py models.py routes.py run_xampp.py api/index.py"
+    "setup": "node scripts/local-runner.js setup",
+    "start": "node scripts/local-runner.js start",
+    "dev": "node scripts/local-runner.js start",
+    "check": "node scripts/local-runner.js check"
   },
   "engines": {
     "node": ">=18"

@@ -20,6 +20,7 @@ An interactive web application for image recognition using machine learning to p
    ```powershell
    cd path\to\image-recognization--main
    dir app.py
+   npm install
    npm run setup
    npm start
    ```
@@ -32,9 +33,12 @@ The npm scripts run the Python Flask app and use a local SQLite database automat
 If PowerShell blocks `npm`, use `npm.cmd`:
 
 ```powershell
+npm.cmd install
 npm.cmd run setup
 npm.cmd start
 ```
+
+If you previously ran the XAMPP version and have an old `.env` file, you do not need to delete it. `npm start` forces local SQLite automatically.
 
 4. **Troubleshooting**:
    - If you encounter any issues, see `XAMPP_TROUBLESHOOTING.md`

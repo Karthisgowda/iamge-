@@ -51,7 +51,9 @@ def mysql_uri_from_env():
 
 # Database configuration. Local development uses SQLite by default so the app
 # starts without XAMPP/MySQL. Set DATABASE_URL or USE_MYSQL=1 to use MySQL.
-if os.environ.get('DATABASE_URL'):
+if os.environ.get('USE_SQLITE') == '1':
+    app.config['SQLALCHEMY_DATABASE_URI'] = local_sqlite_uri()
+elif os.environ.get('DATABASE_URL'):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 elif os.environ.get('VERCEL'):
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/image_recognition.db'
