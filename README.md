@@ -4,6 +4,19 @@ An interactive web application for image recognition using machine learning to p
 
 Repository: https://github.com/Karthisgowda/iamge-.git
 
+## Final Feature Set
+
+- User registration, login, logout, and protected dashboard pages
+- Drag-and-drop image upload with server-side file type validation
+- Basic recognition tags with confidence chart visualization
+- Groq-powered detailed AI image analysis when `GROQ_API_KEY` is configured
+- Automatic basic fallback mode when no API key is available
+- User analysis history with previews, top tags, and timestamps
+- Download any analysis as JSON
+- Delete saved analyses and uploaded images
+- Local SQLite database by default, so XAMPP/MySQL is not required
+- `/api/status` health endpoint for quick localhost checks
+
 ## Local Setup Instructions
 
 ### Prerequisites
@@ -29,6 +42,7 @@ Repository: https://github.com/Karthisgowda/iamge-.git
 
 3. **Open the app**:
    - Visit http://localhost:5000
+   - Visit http://localhost:5000/api/status to confirm the backend is healthy
 
 The npm scripts run the Python Flask app and use a local SQLite database automatically. XAMPP/MySQL is not required.
 

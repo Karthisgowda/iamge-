@@ -50,6 +50,59 @@
     background-color: rgba(13, 110, 253, 0.05);
 }
 
+.stat-tile {
+    background: rgba(33, 37, 41, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stat-tile span {
+    color: var(--bs-secondary-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+}
+
+.stat-tile strong {
+    color: var(--bs-light);
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.stat-tile .stat-small {
+    font-size: 0.95rem;
+}
+
+.tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+
+.tag-pill {
+    border: 1px solid rgba(13, 202, 240, 0.28);
+    background: rgba(13, 202, 240, 0.08);
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.tag-pill span {
+    overflow-wrap: anywhere;
+}
+
+.tag-pill strong {
+    color: var(--bs-info);
+    white-space: nowrap;
+}
+
 /* Loading spinner animation */
 @keyframes spin {
     0% { transform: rotate(0deg); }

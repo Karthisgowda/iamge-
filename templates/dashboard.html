@@ -5,6 +5,35 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Image Recognition Dashboard</h1>
+
+    {% if stats %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-tile">
+                <span>Total Analyses</span>
+                <strong>{{ stats.total }}</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-tile">
+                <span>AI Analysis</span>
+                <strong>{{ 'Ready' if stats.groq_enabled else 'Basic' }}</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-tile">
+                <span>Max Upload</span>
+                <strong>{{ stats.max_upload_mb }} MB</strong>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-tile">
+                <span>Latest</span>
+                <strong class="stat-small">{{ stats.latest }}</strong>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <div class="row">
         <!-- Upload Form Column -->
@@ -129,6 +158,20 @@
                         <div class="mb-4">
                             <canvas id="resultsChart"></canvas>
                         </div>
+
+                        {% if result.top_tags %}
+                        <div class="mb-4">
+                            <h5 class="mb-3">Top Detected Tags</h5>
+                            <div class="tag-grid">
+                                {% for tag in result.top_tags %}
+                                <div class="tag-pill">
+                                    <span>{{ tag.name }}</span>
+                                    <strong>{{ tag.confidence }}%</strong>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                         
                         <!-- Groq Analysis -->
                         {% if result.openai_analysis and result.openai_analysis.success %}
@@ -179,8 +222,13 @@
                         </div>
                     {% endif %}
                 </div>
-                <div class="card-footer text-center">
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Analyze Another Image</a>
+                <div class="card-footer d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Analyze Another
+                    </a>
+                    <a href="{{ url_for('download_result', result_id=result.id) }}" class="btn btn-outline-info">
+                        <i class="fas fa-file-arrow-down me-2"></i>Download JSON
+                    </a>
                 </div>
             </div>
             {% else %}

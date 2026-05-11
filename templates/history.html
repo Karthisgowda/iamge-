@@ -5,6 +5,29 @@
 {% block content %}
 <div class="container">
     <h1 class="mb-4">Analysis History</h1>
+
+    {% if stats %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <span>Total Analyses</span>
+                <strong>{{ stats.total }}</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <span>AI Analysis</span>
+                <strong>{{ 'Ready' if stats.groq_enabled else 'Basic' }}</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-tile">
+                <span>Latest</span>
+                <strong class="stat-small">{{ stats.latest }}</strong>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     
     <div class="card shadow animate-on-scroll fade-in">
         <div class="card-header bg-primary text-white">
@@ -18,6 +41,7 @@
                             <tr>
                                 <th>Preview</th>
                                 <th>Image Details</th>
+                                <th>Top Tags</th>
                                 <th>Date & Time</th>
                                 <th>Analysis Type</th>
                                 <th>Actions</th>
@@ -40,21 +64,44 @@
                                     </div>
                                 </td>
                                 <td>
+                                    {% if result.top_tags %}
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for tag in result.top_tags %}
+                                                <span class="badge bg-secondary">{{ tag.name }} {{ tag.confidence }}%</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">No tags saved</span>
+                                    {% endif %}
+                                </td>
+                                <td>
                                     <div class="d-flex flex-column">
                                         <span>{{ result.timestamp }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-info text-dark">Basic Recognition</span>
-                                    {% if result.recognition_data and ('"openai_analysis"' in result.recognition_data or '"lama_analysis"' in result.recognition_data) %}
+                                    {% if result.ai_enhanced %}
                                         <span class="badge bg-success">AI Enhanced</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('view_result', result_id=result.id) }}" 
-                                       class="btn btn-sm btn-primary">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="{{ url_for('view_result', result_id=result.id) }}"
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('download_result', result_id=result.id) }}"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-file-arrow-down"></i> JSON
+                                        </a>
+                                        <form method="POST" action="{{ url_for('delete_result', result_id=result.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Delete this analysis?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

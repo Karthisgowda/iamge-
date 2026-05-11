@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from datetime import datetime
-from flask import render_template, url_for, flash, redirect, request, jsonify, abort
+from flask import render_template, url_for, flash, redirect, request, jsonify, abort, Response
 from flask_login import login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from app import app, db
@@ -14,6 +14,38 @@ import logging
 # Ensure uploads directory exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+def allowed_file(filename):
+    return (
+        '.' in filename
+        and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    )
+
+def extract_top_tags(recognition_result, limit=10):
+    try:
+        tags = recognition_result['data']['result']['tags']
+        top_tags = sorted(tags, key=lambda x: x['confidence'], reverse=True)[:limit]
+        return [
+            {
+                'name': tag['tag']['en'],
+                'confidence': round(float(tag['confidence']), 2)
+            }
+            for tag in top_tags
+        ]
+    except (KeyError, TypeError, ValueError):
+        return []
+
+def build_user_stats(user_id):
+    total = ImageResult.query.filter_by(user_id=user_id).count()
+    latest = ImageResult.query.filter_by(user_id=user_id)\
+        .order_by(ImageResult.timestamp.desc())\
+        .first()
+    return {
+        'total': total,
+        'latest': latest.timestamp.strftime('%b %d, %Y at %H:%M:%S') if latest else 'No uploads yet',
+        'groq_enabled': bool(app.config.get('GROQ_API_KEY')),
+        'max_upload_mb': int(app.config['MAX_CONTENT_LENGTH'] / (1024 * 1024))
+    }
 
 # Home route
 @app.route('/')
@@ -82,6 +114,10 @@ def dashboard():
         # Save the uploaded file
         file = form.image.data
         original_filename = secure_filename(file.filename)
+
+        if not original_filename or not allowed_file(original_filename):
+            flash('Please upload a JPG, JPEG, PNG, or GIF image.', 'danger')
+            return redirect(url_for('dashboard'))
         
         # Generate unique filename to prevent overwrites
         extension = original_filename.rsplit('.', 1)[1].lower()
@@ -192,6 +228,7 @@ For a more detailed AI analysis, please try again later when our Groq enhanced a
         
         # Prepare visualization data
         visualization_data = get_visualization_data(recognition_result)
+        top_tags = extract_top_tags(recognition_result)
         
         # Return result for display
         result = {
@@ -200,6 +237,7 @@ For a more detailed AI analysis, please try again later when our Groq enhanced a
             'original_filename': original_filename,
             'timestamp': image_result.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
             'visualization_data': visualization_data,
+            'top_tags': top_tags,
             'success': recognition_result['success'],
             'error': recognition_result.get('error', None),
             'simulated': recognition_result.get('simulated', False),
@@ -216,7 +254,8 @@ For a more detailed AI analysis, please try again later when our Groq enhanced a
         title='Dashboard',
         form=form,
         result=result,
-        recent_results=recent_results
+        recent_results=recent_results,
+        stats=build_user_stats(current_user.id)
     )
 
 # View a specific image result
@@ -233,6 +272,7 @@ def view_result(result_id):
     # Parse the stored recognition data
     recognition_result = json.loads(result.recognition_data)
     visualization_data = get_visualization_data(recognition_result)
+    top_tags = extract_top_tags(recognition_result)
     
     # Extract enhanced AI analysis if it exists.
     openai_analysis = recognition_result.get('openai_analysis', {})
@@ -250,13 +290,65 @@ def view_result(result_id):
         'original_filename': result.original_filename,
         'timestamp': result.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
         'visualization_data': visualization_data,
+        'top_tags': top_tags,
         'success': recognition_result['success'],
         'error': recognition_result.get('error', None),
         'simulated': recognition_result.get('simulated', False),
         'openai_analysis': openai_analysis
     }
     
-    return render_template('dashboard.html', title='Result', result=view_data)
+    recent_results = ImageResult.query.filter_by(user_id=current_user.id)\
+        .order_by(ImageResult.timestamp.desc())\
+        .limit(5).all()
+
+    return render_template(
+        'dashboard.html',
+        title='Result',
+        form=ImageUploadForm(),
+        result=view_data,
+        recent_results=recent_results,
+        stats=build_user_stats(current_user.id)
+    )
+
+@app.route('/result/<int:result_id>/download')
+@login_required
+def download_result(result_id):
+    """Download a saved recognition result as JSON."""
+    result = ImageResult.query.get_or_404(result_id)
+    if result.user_id != current_user.id:
+        abort(403)
+
+    payload = {
+        'id': result.id,
+        'filename': result.filename,
+        'original_filename': result.original_filename,
+        'timestamp': result.timestamp.isoformat(),
+        'recognition_data': json.loads(result.recognition_data or '{}')
+    }
+    return Response(
+        json.dumps(payload, indent=2),
+        mimetype='application/json',
+        headers={
+            'Content-Disposition': f'attachment; filename=analysis-{result.id}.json'
+        }
+    )
+
+@app.route('/result/<int:result_id>/delete', methods=['POST'])
+@login_required
+def delete_result(result_id):
+    """Delete a saved result and its uploaded image."""
+    result = ImageResult.query.get_or_404(result_id)
+    if result.user_id != current_user.id:
+        abort(403)
+
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], result.filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    db.session.delete(result)
+    db.session.commit()
+    flash('Analysis deleted successfully.', 'success')
+    return redirect(url_for('history'))
 
 # History page showing all user's image results
 @app.route('/history')
@@ -270,12 +362,28 @@ def history():
     # Format results with proper timestamp string
     results = []
     for item in db_results:
+        parsed = json.loads(item.recognition_data or '{}')
+        top_tags = extract_top_tags(parsed, limit=3)
         results.append({
             'id': item.id,
             'filename': item.filename,
             'original_filename': item.original_filename,
             'timestamp': item.timestamp.strftime('%b %d, %Y at %H:%M:%S'),
-            'recognition_data': item.recognition_data
+            'recognition_data': item.recognition_data,
+            'top_tags': top_tags,
+            'ai_enhanced': bool(parsed.get('openai_analysis') or parsed.get('lama_analysis'))
         })
     
-    return render_template('history.html', title='History', results=results)
+    return render_template('history.html', title='History', results=results, stats=build_user_stats(current_user.id))
+
+@app.route('/api/status')
+def api_status():
+    """Small health endpoint for local checks and demos."""
+    return jsonify({
+        'status': 'ok',
+        'app': 'Image Recognition',
+        'database': 'connected',
+        'groq_enabled': bool(app.config.get('GROQ_API_KEY')),
+        'max_upload_mb': int(app.config['MAX_CONTENT_LENGTH'] / (1024 * 1024)),
+        'allowed_extensions': sorted(app.config['ALLOWED_EXTENSIONS'])
+    })
